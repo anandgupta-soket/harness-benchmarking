@@ -1,0 +1,11 @@
+{
+  "name": "aurora-studio-site",
+  "private": true,
+  "description": "Bring-your-own-website fixture shared by several independent feature tasks (dark mode, search, favorites, form validation, accessible nav). Each task's success check runs only its own tests/*.test.js file; `npm test` here runs all of them together, useful for checking the whole site after replacing it with your own.",
+  "scripts": {
+    "test": "node --test tests/"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0"
+  }
+}

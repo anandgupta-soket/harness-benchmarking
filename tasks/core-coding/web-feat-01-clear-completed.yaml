@@ -1,0 +1,33 @@
+id: WEB-FEAT-01
+suite: core-coding
+category: feature
+title: Implement clearCompleted() in mini-web todos
+
+repo:
+  type: fixture
+  path: fixtures/mini-web
+  commit: HEAD
+
+prompt: |
+  Implement `clearCompleted` in js/todo.js so it returns a new list with
+  completed todos removed (active items unchanged).
+  Keep or add tests covering that behavior.
+  Run `node --test tests/clear.test.js` when done.
+
+success:
+  type: command
+  cwd: fixtures/mini-web
+  command: node --test tests/clear.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 15
+  max_tokens: 100000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - javascript
+  - web

@@ -1,0 +1,32 @@
+id: TOOL-01
+suite: core-coding
+category: tooling
+title: Fix clippy warnings in mini-calc
+
+repo:
+  type: fixture
+  path: fixtures/mini-calc-buggy
+  commit: HEAD
+
+prompt: |
+  First fix the `add` bug in this project so tests pass.
+  Then run `cargo clippy -- -D warnings` and fix any warnings.
+  Confirm with `cargo test` and `cargo clippy -- -D warnings` both succeeding.
+
+success:
+  type: command
+  cwd: fixtures/mini-calc-buggy
+  command: sh -c "cargo test && cargo clippy -- -D warnings"
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 25
+  max_turns: 22
+  max_tokens: 150000
+
+operator_policy: hands_off
+
+tags:
+  - tooling
+  - clippy
+  - multi-step

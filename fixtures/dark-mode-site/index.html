@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurora Studio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html">Aurora Studio</a>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav>
+      <ul class="site-nav" id="site-nav">
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>We build small, honest websites.</h1>
+      <p>
+        Aurora Studio is a three-person shop that designs and builds static
+        sites for local businesses - no frameworks, no nonsense, just HTML,
+        CSS, and a little JavaScript.
+      </p>
+      <a class="button" href="contact.html">Get in touch</a>
+    </section>
+
+    <section>
+      <h2>What we're known for</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>Fast by default</h3>
+          <p>No build step, no bundler, no framework tax. Pages load instantly on any connection.</p>
+        </div>
+        <div class="card">
+          <h3>Built to last</h3>
+          <p>Plain HTML and CSS age better than any framework. Your site still works in ten years.</p>
+        </div>
+        <div class="card">
+          <h3>Easy to hand off</h3>
+          <p>Any developer can open these files and understand them in minutes, no onboarding required.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Aurora Studio. All rights reserved.</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

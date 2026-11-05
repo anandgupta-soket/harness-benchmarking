@@ -1,0 +1,52 @@
+id: FEAT-02
+suite: core-coding
+category: feature
+title: Add dark mode to a site that has none
+
+repo:
+  type: fixture
+  path: fixtures/dark-mode-site
+  commit: HEAD
+
+prompt: |
+  This is a small multi-page static website (index.html, about.html,
+  services.html, contact.html, sharing css/style.css and js/app.js) that has
+  no dark mode. Add a toggle control (e.g. a button) that switches the site
+  between light and dark themes, on every page.
+
+  Requirements, exactly:
+  1. The toggle element must have id="theme-toggle", present on every page
+     of the site (not just the homepage) - if the site shares a header
+     across pages, add it there once; otherwise add it to each page.
+  2. Clicking it sets document.documentElement.dataset.theme to "dark" or
+     "light" (i.e. an attribute data-theme="dark"/"light" on the <html>
+     element), flipping each time it's clicked, on whichever page you're on.
+  3. The chosen theme is persisted to localStorage under the key "theme",
+     shared across all pages (the same browser tab storage already is).
+  4. On a fresh load of any page, if a theme was previously stored, it is
+     applied immediately (no extra click needed) - real persistence across
+     reloads and across pages, not just saving a value nobody reads back.
+  5. All existing page content and functionality must keep working on every
+     page (nav, forms, etc).
+
+  You may style the actual dark/light colors however you like - only the
+  mechanism above (id, attribute, localStorage key, on every page) is
+  checked automatically, not the visual design.
+
+success:
+  type: command
+  cwd: fixtures/dark-mode-site
+  command: npm install --silent && node --test tests/dark-mode.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 20
+  max_tokens: 200000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - frontend
+  - dark-mode

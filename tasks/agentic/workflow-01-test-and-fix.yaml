@@ -1,0 +1,34 @@
+id: AGENT-01
+suite: agentic
+category: tooling
+title: Diagnose failing test, fix, and verify with shell
+
+repo:
+  type: fixture
+  path: fixtures/mini-calc-buggy
+  commit: HEAD
+
+prompt: |
+  This project has a failing test. Without being told which test:
+  1) run the test suite to see the failure,
+  2) fix the production code,
+  3) re-run tests to confirm green.
+  Use shell commands for verification; do not skip running tests.
+
+success:
+  type: command
+  cwd: fixtures/mini-calc-buggy
+  command: cargo test --quiet
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 25
+  max_turns: 25
+  max_tokens: 150000
+
+operator_policy: hands_off
+
+tags:
+  - agentic
+  - bash
+  - diagnose

@@ -1,0 +1,34 @@
+id: WEB-REF-01
+suite: core-coding
+category: refactor
+title: Extract bindEvents helper in mini-web app.js
+
+repo:
+  type: fixture
+  path: fixtures/mini-web
+  commit: HEAD
+
+prompt: |
+  In js/app.js, refactor duplicated querySelector and addEventListener
+  wiring into a function declaration named bindEvents
+  (e.g. `function bindEvents() { ... }`) in app.js.
+  Behavior must stay identical. Core tests must still pass:
+  `node --test tests/todo.test.js`.
+
+success:
+  type: command
+  cwd: fixtures/mini-web
+  command: bash scripts/check_refactor.sh
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 18
+  max_tokens: 120000
+
+operator_policy: hands_off
+
+tags:
+  - refactor
+  - javascript
+  - web

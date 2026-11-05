@@ -1,0 +1,29 @@
+id: TASK-00
+suite: core-coding
+category: bugfix
+title: Short description of the task
+
+repo:
+  type: fixture
+  path: fixtures/mini-calc
+  commit: HEAD
+
+prompt: |
+  Replace this with the exact prompt operators should send.
+  Do not paraphrase during benchmark runs.
+
+success:
+  type: command
+  cwd: fixtures/mini-calc
+  command: cargo test
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 20
+  max_tokens: 200000
+
+operator_policy: hands_off
+
+tags:
+  - template

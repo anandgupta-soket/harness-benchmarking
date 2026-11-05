@@ -1,0 +1,13 @@
+run_id,date,harness,model,task_id,repo_sha,success,input_tokens,output_tokens,total_tokens,t_first_token_ms,t_last_token_ms,wall_clock_ms,assistant_turns,tool_calls,retries,notes
+r001,2026-08-20,Loop,qwen3-30b,BUG-01,abc111,true,12400,3200,15600,890,45200,125000,4,6,0,
+r002,2026-08-20,Loop,qwen3-30b,BUG-01,abc111,true,11800,2800,14600,920,41000,118000,3,5,0,
+r003,2026-08-20,Loop,qwen3-30b,BUG-01,abc111,false,22000,5100,27100,1100,90000,240000,8,12,1,timeout near max turns
+r004,2026-08-20,Cursor,claude-sonnet-4-6,BUG-01,abc111,true,18200,4100,22300,650,52000,98000,5,7,0,
+r005,2026-08-20,Cursor,claude-sonnet-4-6,BUG-01,abc111,true,17500,3900,21400,700,48000,92000,4,6,0,
+r006,2026-08-20,Claude Code,claude-sonnet-4-6,BUG-01,abc111,true,9800,2400,12200,520,38000,85000,3,4,0,
+r007,2026-08-20,Claude Code,claude-sonnet-4-6,BUG-01,abc111,true,10200,2600,12800,480,40000,88000,3,5,0,
+r008,2026-08-20,Codex,gpt-5-codex,BUG-01,abc111,true,14100,3300,17400,780,44000,102000,4,5,0,
+r009,2026-08-20,Codex,gpt-5-codex,BUG-01,abc111,false,31000,8000,39000,900,120000,300000,11,15,2,wrong edit reverted manually
+r010,2026-08-20,Loop,qwen3-30b,FEAT-01,abc111,true,24500,6200,30700,950,78000,195000,7,10,0,
+r011,2026-08-20,Claude Code,claude-sonnet-4-6,FEAT-01,abc111,true,19800,5100,24900,600,65000,160000,6,8,0,
+r012,2026-08-20,Cursor,claude-sonnet-4-6,FEAT-01,abc111,true,31200,7400,38600,720,92000,210000,8,11,1,

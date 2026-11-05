@@ -1,0 +1,52 @@
+id: FEAT-05
+suite: core-coding
+category: feature
+title: Add client-side validation to the contact form
+
+repo:
+  type: fixture
+  path: fixtures/dark-mode-site
+  commit: HEAD
+
+prompt: |
+  The contact form on contact.html (#contact-form, fields #name, #email,
+  #message) currently shows its "Thanks!" success message on every submit,
+  even with empty or invalid fields. Add real client-side validation.
+
+  Requirements, exactly:
+  1. Name and Message are required (must be non-empty after trimming
+     whitespace).
+  2. Email must look like a real address (something@something.something -
+     reject obviously malformed values like "not-an-email" or "dana@").
+  3. Submitting with any invalid field must NOT show the existing "Thanks"
+     success message in #form-status, and must not actually "submit"
+     (preventDefault, as it already does).
+  4. For each invalid field, show a non-empty error message in an element
+     with id="<field>-error" (i.e. id="name-error", "email-error",
+     "message-error") - add these elements next to their fields if they
+     don't exist yet.
+  5. Fixing the fields and submitting again must clear the errors back to
+     empty text and show the success message, exactly as the form already
+     does today for a submit you don't block.
+
+  You do not need to validate on every keystroke - checking on submit is
+  enough, as long as re-submitting after a fix clears old errors.
+
+success:
+  type: command
+  cwd: fixtures/dark-mode-site
+  command: npm install --silent && node --test tests/form-validation.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 18
+  max_tokens: 150000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - frontend
+  - forms
+  - validation

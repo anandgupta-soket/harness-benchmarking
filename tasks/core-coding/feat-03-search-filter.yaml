@@ -1,0 +1,46 @@
+id: FEAT-03
+suite: core-coding
+category: feature
+title: Add live search/filter to the services page
+
+repo:
+  type: fixture
+  path: fixtures/dark-mode-site
+  commit: HEAD
+
+prompt: |
+  On services.html, add a search box that filters the three service cards
+  by text as the user types, with no page reload and no build step.
+
+  Requirements, exactly:
+  1. Add an <input id="service-search"> above the card grid
+     (#service-cards).
+  2. On every keystroke, hide any .card inside #service-cards whose
+     visible text doesn't contain the typed query (case-insensitive
+     substring match against the card's own text, including its heading
+     and body). "Hide" means setting the card's `hidden` boolean DOM
+     attribute (card.hidden = true), not just a CSS class, so hidden state
+     is trivially checkable.
+  3. Cards matching the query keep `hidden` false/absent.
+  4. Clearing the search box shows every card again.
+
+  Each card already has a stable data-id attribute (new-site, redesign,
+  maintenance) - don't remove it, the grading test relies on it.
+
+success:
+  type: command
+  cwd: fixtures/dark-mode-site
+  command: npm install --silent && node --test tests/search.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 15
+  max_turns: 15
+  max_tokens: 120000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - frontend
+  - search

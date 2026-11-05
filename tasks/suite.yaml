@@ -1,0 +1,24 @@
+# Index of benchmark tasks for internal beta (Track A).
+# Run validate_tasks.py after edits.
+
+version: 1
+suites:
+  core-coding:
+    description: Bugfix, feature, refactor on small fixtures
+    tasks:
+      - core-coding/bug-01-fix-add.yaml
+      - core-coding/feat-01-cli-flag.yaml
+      - core-coding/feat-02-dark-mode.yaml
+      - core-coding/feat-03-search-filter.yaml
+      - core-coding/feat-04-favorites.yaml
+      - core-coding/feat-05-form-validation.yaml
+      - core-coding/feat-06-accessible-nav.yaml
+      - core-coding/refactor-01-extract-parse.yaml
+      - core-coding/tool-01-fix-lints.yaml
+      - core-coding/web-bug-01-fix-remaining.yaml
+      - core-coding/web-feat-01-clear-completed.yaml
+      - core-coding/web-refactor-01-extract-bind.yaml
+  agentic:
+    description: Multi-step tool use and command execution
+    tasks:
+      - agentic/workflow-01-test-and-fix.yaml

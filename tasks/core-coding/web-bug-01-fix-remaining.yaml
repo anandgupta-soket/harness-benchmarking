@@ -1,0 +1,32 @@
+id: WEB-BUG-01
+suite: core-coding
+category: bugfix
+title: Fix remainingCount() in mini-web todos
+
+repo:
+  type: fixture
+  path: fixtures/mini-web
+  commit: HEAD
+
+prompt: |
+  `remainingCount` in js/todo.js is wrong and tests fail. Fix the
+  implementation so `node --test tests/remaining.test.js` passes.
+  Do not change test code unless absolutely necessary.
+
+success:
+  type: command
+  cwd: fixtures/mini-web
+  command: node --test tests/remaining.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 15
+  max_turns: 12
+  max_tokens: 80000
+
+operator_policy: hands_off
+
+tags:
+  - bugfix
+  - javascript
+  - web

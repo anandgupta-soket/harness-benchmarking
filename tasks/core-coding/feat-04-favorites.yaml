@@ -1,0 +1,47 @@
+id: FEAT-04
+suite: core-coding
+category: feature
+title: Add a persistent favorites toggle to the services page
+
+repo:
+  type: fixture
+  path: fixtures/dark-mode-site
+  commit: HEAD
+
+prompt: |
+  On services.html, let visitors "favorite" individual service cards, with
+  the choice persisted across reloads.
+
+  Requirements, exactly:
+  1. Add a button with class "favorite-toggle" inside each .card in
+     #service-cards (each card already has a stable data-id attribute:
+     new-site, redesign, maintenance - don't remove it).
+  2. Clicking a card's toggle adds or removes that card's data-id from a
+     JSON array stored in localStorage under the key "favorites" (toggle
+     behavior: click once to add, click again on the same card to remove).
+  3. The toggle reflects its own state via aria-pressed="true"/"false",
+     updated immediately on click.
+  4. Add an element with id="favorites-count" (anywhere in the header)
+     showing the current number of favorited cards as plain text, updated
+     immediately on every toggle.
+  5. On a fresh page load, if localStorage already has favorites, both the
+     count and every affected card's aria-pressed state must reflect that
+     immediately - no click needed, no stale defaults.
+
+success:
+  type: command
+  cwd: fixtures/dark-mode-site
+  command: npm install --silent && node --test tests/favorites.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 18
+  max_tokens: 150000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - frontend
+  - localstorage

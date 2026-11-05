@@ -1,0 +1,30 @@
+id: REF-01
+suite: core-coding
+category: refactor
+title: Extract operand parsing helper in mini-calc CLI
+
+repo:
+  type: fixture
+  path: fixtures/mini-calc
+  commit: HEAD
+
+prompt: |
+  In src/main.rs, refactor duplicated integer parsing into a private
+  helper function (e.g. `parse_i32_arg`) in main.rs.
+  Behavior must stay identical. All tests must still pass.
+
+success:
+  type: file_contains
+  path: fixtures/mini-calc/src/main.rs
+  pattern: "fn parse_i32_arg"
+
+limits:
+  timeout_minutes: 20
+  max_turns: 18
+  max_tokens: 120000
+
+operator_policy: hands_off
+
+tags:
+  - refactor
+  - rust

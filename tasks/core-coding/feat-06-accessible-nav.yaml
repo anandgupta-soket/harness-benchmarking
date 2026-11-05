@@ -1,0 +1,53 @@
+id: FEAT-06
+suite: core-coding
+category: feature
+title: Make the mobile nav menu keyboard-accessible
+
+repo:
+  type: fixture
+  path: fixtures/dark-mode-site
+  commit: HEAD
+
+prompt: |
+  The mobile nav (#nav-toggle button, #site-nav menu, shared across every
+  page) only really works with a mouse today. Make it fully usable from
+  the keyboard, on every page.
+
+  Requirements, exactly:
+  1. Clicking #nav-toggle to open the menu must move focus to the first
+     link inside #site-nav.
+  2. While the menu is open, pressing Escape (anywhere) must close it
+     (remove the "open" class, set aria-expanded="false" on #nav-toggle,
+     same as clicking the toggle to close) and move focus back to
+     #nav-toggle.
+  3. While the menu is open, pressing Tab while focus is on the LAST link
+     inside #site-nav must move focus back to #nav-toggle, not out of the
+     menu onto page content behind it.
+  4. While the menu is open, pressing Shift+Tab while focus is on
+     #nav-toggle must move focus to the LAST link inside #site-nav.
+  5. The toggle button must keep working exactly as it does today
+     (clicking it again while open still closes the menu).
+
+  Note: a real focus trap needs your own keydown handling (listen for Tab/
+  Shift+Tab and call .focus() + preventDefault() yourself) - relying on the
+  browser's native tab order is not enough, since the menu's DOM siblings
+  aren't actually removed from that order.
+
+success:
+  type: command
+  cwd: fixtures/dark-mode-site
+  command: npm install --silent && node --test tests/accessible-nav.test.js
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 18
+  max_tokens: 150000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - frontend
+  - accessibility
+  - keyboard

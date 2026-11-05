@@ -1,0 +1,32 @@
+id: FEAT-01
+suite: core-coding
+category: feature
+title: Support --verbose long flag in mini-calc
+
+repo:
+  type: fixture
+  path: fixtures/mini-calc
+  commit: HEAD
+
+prompt: |
+  Extend `parse_verbose_flag` in src/lib.rs so it returns true for both
+  `-v` and `--verbose` (same as `-v` today).
+  Update or add tests to cover `--verbose`.
+  Run `cargo test` when done.
+
+success:
+  type: command
+  cwd: fixtures/mini-calc
+  command: cargo run -q -- add 2 3 --verbose 2>&1 | grep -q "verbose: add 2 3 -> 5"
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 20
+  max_turns: 15
+  max_tokens: 100000
+
+operator_policy: hands_off
+
+tags:
+  - feature
+  - rust

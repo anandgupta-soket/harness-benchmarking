@@ -1,0 +1,8 @@
+{
+  "name": "mini-web",
+  "private": true,
+  "description": "Vanilla HTML/JS todo fixture for Loop harness benchmarks",
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}

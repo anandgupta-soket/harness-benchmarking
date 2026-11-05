@@ -1,0 +1,12 @@
+# Fixture build artifacts
+fixtures/**/target/
+fixtures/**/node_modules/
+
+# Generated run logs (keep template + sample committed)
+runs/runs.csv
+runs/scorecard*.md
+runs/out/
+runs/*.lock
+__pycache__/
+runs/suites.csv
+reports/

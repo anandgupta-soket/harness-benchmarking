@@ -1,0 +1,32 @@
+id: BUG-01
+suite: core-coding
+category: bugfix
+title: Fix broken add() in mini-calc
+
+repo:
+  type: fixture
+  path: fixtures/mini-calc-buggy
+  commit: HEAD
+
+prompt: |
+  The `add` function in this project is wrong and tests fail.
+  Fix the implementation so `cargo test` passes.
+  Do not change test code unless absolutely necessary.
+
+success:
+  type: command
+  cwd: fixtures/mini-calc-buggy
+  command: cargo test
+  expect_exit: 0
+
+limits:
+  timeout_minutes: 15
+  max_turns: 12
+  max_tokens: 80000
+
+operator_policy: hands_off
+
+tags:
+  - bugfix
+  - single-file
+  - rust

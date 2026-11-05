@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Services - Aurora Studio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html">Aurora Studio</a>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav>
+      <ul class="site-nav" id="site-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html" aria-current="page">Services</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Services</h1>
+      <p>Three ways we can help, depending on how much you already have built.</p>
+    </section>
+
+    <section class="card-grid" id="service-cards">
+      <div class="card" data-id="new-site">
+        <h3>New site</h3>
+        <p>A complete static site built from scratch: home, about, services, and contact pages, styled and responsive.</p>
+      </div>
+      <div class="card" data-id="redesign">
+        <h3>Redesign</h3>
+        <p>Keep your content and structure, get a modern look and faster load times, no CMS migration required.</p>
+      </div>
+      <div class="card" data-id="maintenance">
+        <h3>Maintenance</h3>
+        <p>Ongoing small changes and fixes for sites we've already built, billed by the hour.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Aurora Studio. All rights reserved.</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
