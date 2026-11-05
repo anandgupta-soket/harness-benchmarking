@@ -56,7 +56,8 @@ RUN curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/v${KUBECTL_VER
     && echo "$(cat /tmp/kubectl.sha256)  /usr/local/bin/kubectl" | sha256sum -c - \
     && chmod 0755 /usr/local/bin/kubectl \
     && kubectl version --client --output=yaml | grep -F "gitVersion: v${KUBECTL_VERSION}"
-COPY docker/pilot-package.json docker/pilot-package-lock.json /opt/bench-tools/
+COPY docker/pilot-package.json /opt/bench-tools/package.json
+COPY docker/pilot-package-lock.json /opt/bench-tools/package-lock.json
 RUN npm ci --prefix /opt/bench-tools \
     && npm ls --prefix /opt/bench-tools --depth=0 \
     && ln -s /opt/bench-tools/node_modules/.bin/pi /usr/local/bin/pi \
