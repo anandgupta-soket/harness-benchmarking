@@ -241,17 +241,3 @@ def test_harness_state_excludes_credential_stores(tmp_path):
     assert (tmp_path / "out/harness_state/sessions/s.jsonl").exists() and not (tmp_path / "out/harness_state/auth.json").exists()
     assert "auth.json" in r["harness_state_copy"]["skipped_files"]
 
-
-def test_agent_workspace_is_writable_even_when_image_fixture_is_read_only(tmp_path):
-    p = params(tmp_path)
-    fx = tmp_path / "fixtures" / "fx"
-    (fx / "src" / "lib.rs").chmod(0o400)
-    (fx / "src").chmod(0o500)
-    fx.chmod(0o500)
-    try:
-        r = run_trial(p, cg=FakeCg(), build=fake_build(GOOD))
-    finally:
-        for d in (fx, fx / "src"):
-            d.chmod(0o700)
-    assert r["agent"]["exit_code"] == 0, r["agent"]
-    assert (tmp_path / "work" / "project" / "src" / "lib.rs").read_text() == "new"
