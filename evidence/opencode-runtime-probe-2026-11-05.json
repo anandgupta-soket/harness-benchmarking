@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-11-05T13:20:00Z",
+  "scope": "package/runtime probe only; no model/API request",
+  "environment": {
+    "image": "node:22.21.0-bookworm-slim",
+    "node": "v22.21.0",
+    "npm": "10.9.4",
+    "architecture": "x86_64",
+    "kernel": "Linux 5.15.0-1088-nvidia",
+    "uid": 10001,
+    "service_account_token": false
+  },
+  "package": "opencode-ai@1.19.5",
+  "npm_install_exit": 0,
+  "postinstall_exit": 0,
+  "wrapper_link": "node_modules/.bin/opencode -> ../opencode-ai/bin/opencode.exe",
+  "wrapper_target": {
+    "kind": "ELF x86_64 executable",
+    "size_bytes": 214386864
+  },
+  "checks": {
+    "wrapper_version": {"exit": 0, "output": "1.19.5"},
+    "native_version": {"exit": 0, "output": "1.19.5"},
+    "native_help": {"exit": 0},
+    "ldd": "all required libraries resolved",
+    "disable_autoupdate_environment_wrapper_version": {"exit": 0, "output": "1.19.5"},
+    "disable_autoupdate_environment_wrapper_help": {"exit": 0}
+  },
+  "temporary_pod_deleted": true,
+  "conclusion": "The pinned OpenCode npm package and native binary work in a minimal Bookworm container on the benchmark worker. The earlier full-image build failure remains unreproduced; full-image PATH and symlink diagnostics are being added."
+}

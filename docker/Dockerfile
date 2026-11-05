@@ -114,6 +114,10 @@ RUN git init /opt/hermes-src \
     && node -e 'for (const [p,v] of [["@mariozechner/pi-coding-agent", process.env.PI_VERSION], ["opencode-ai", process.env.OPENCODE_VERSION], ["cline", process.env.CLINE_VERSION], ["@kilocode/cli", process.env.KILO_VERSION]]) { const actual = require(`/opt/bench-tools/node_modules/${p}/package.json`).version; if (actual !== v) throw new Error(`${p}: ${actual} != ${v}`) }' \
     && loop --version | grep -F '0.6.0' \
     && pi --version | grep -F "${PI_VERSION}" \
+    && echo "PATH=${PATH}" \
+    && command -V opencode \
+    && ls -l /opt/bench-tools/node_modules/.bin/opencode /opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe \
+    && readlink -f "$(command -v opencode)" \
     && (opencode --version >/tmp/opencode-version.stdout 2>/tmp/opencode-version.stderr; status=$?; \
         echo "opencode --version exit=$status"; \
         echo "opencode --version stdout:"; cat /tmp/opencode-version.stdout; \
