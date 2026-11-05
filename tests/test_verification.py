@@ -21,6 +21,10 @@ def test_rejects_symlink_but_ignores_candidate_tests(tmp_path: Path) -> None:
     (submit / "tests").mkdir()
     (submit / "tests/fake.rs").write_text("#[test] fn fake() {}")
     stage = tmp_path / "stage"
+    # A rejected overlay may already have copied earlier regular files before
+    # directory traversal encounters the symlink. Start the next assertion
+    # from a clean destination instead of depending on filesystem traversal order.
+    shutil.rmtree(stage, ignore_errors=True)
     shutil.copytree(verification.FIXTURES_DIR / "mini-calc-buggy", stage)
     verification._safe_overlay("BUG-01", submit, stage)
     assert not (stage / "tests/fake.rs").exists()
