@@ -114,7 +114,14 @@ RUN git init /opt/hermes-src \
     && node -e 'for (const [p,v] of [["@mariozechner/pi-coding-agent", process.env.PI_VERSION], ["opencode-ai", process.env.OPENCODE_VERSION], ["cline", process.env.CLINE_VERSION], ["@kilocode/cli", process.env.KILO_VERSION]]) { const actual = require(`/opt/bench-tools/node_modules/${p}/package.json`).version; if (actual !== v) throw new Error(`${p}: ${actual} != ${v}`) }' \
     && loop --version | grep -F '0.6.0' \
     && pi --version | grep -F "${PI_VERSION}" \
-    && opencode --version \
+    && (opencode --version >/tmp/opencode-version.stdout 2>/tmp/opencode-version.stderr; status=$?; \
+        echo "opencode --version exit=$status"; \
+        echo "opencode --version stdout:"; cat /tmp/opencode-version.stdout; \
+        echo "opencode --version stderr:"; cat /tmp/opencode-version.stderr; \
+        test "$status" -eq 0; \
+        cat /tmp/opencode-version.stdout /tmp/opencode-version.stderr >/tmp/opencode-binary-version; \
+        grep -F "${OPENCODE_VERSION}" /tmp/opencode-binary-version) \
+    && python -c 'import json; from pathlib import Path; p=Path("/opt/bench/image-manifest.json"); d=json.loads(p.read_text()); d["harnesses"]["opencode"]["binary_version_output"]=Path("/tmp/opencode-binary-version").read_text().strip(); p.write_text(json.dumps(d, indent=2) + "\n")' \
     && cline --version | grep -F "${CLINE_VERSION}" \
     && kilo --version | grep -F "${KILO_VERSION}" \
     && omp --version | grep -F "${OMP_VERSION}" \

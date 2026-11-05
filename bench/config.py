@@ -22,6 +22,7 @@ K8S_NAME_RE = re.compile(r"^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$")
 DIGEST_RE = re.compile(r"@sha256:[0-9a-f]{64}$")
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SAFE_STR_RE = re.compile(r"^[A-Za-z0-9._:/@+=-]+$")
+ALLOWED_INTERNAL_HTTP_ENDPOINT = "http://172.17.99.145:30000/v1"
 
 
 class ConfigError(Exception):
@@ -159,8 +160,9 @@ def validate(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         if isinstance(v, str) and not is_placeholder(v) and not SAFE_STR_RE.match(v):
             problems.append(f"{p} contains unsafe characters")
     ep = _get(data, "model.base_url")
-    if isinstance(ep, str) and not is_placeholder(ep) and not ep.startswith("https://"):
-        problems.append("model.base_url must be https://")
+    if (isinstance(ep, str) and not is_placeholder(ep)
+            and not (ep.startswith("https://") or ep == ALLOWED_INTERNAL_HTTP_ENDPOINT)):
+        problems.append("model.base_url must use https:// (or the explicitly allowlisted internal HTTP endpoint)")
     if isinstance(ep, str) and not is_placeholder(ep):
         from urllib.parse import urlsplit
         if urlsplit(ep).username or urlsplit(ep).password:

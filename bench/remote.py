@@ -70,9 +70,12 @@ def main() -> None:
             raise ValueError('unsupported runner image manifest schema')
         for harness in cfg.harnesses:
             expected = cfg.data['harnesses'][harness]['version']
-            actual = manifest.get('harnesses', {}).get(harness, {}).get('version')
+            details = manifest.get('harnesses', {}).get(harness, {})
+            actual = details.get('version')
             if actual != expected:
                 raise ValueError(f'image provenance mismatch for {harness}: config={expected!r}, image={actual!r}')
+            if harness == 'opencode' and expected not in details.get('binary_version_output', ''):
+                raise ValueError('image manifest lacks verified OpenCode binary version output')
         expected_commit = cfg.data['loop']['commit']
         actual_commit = manifest.get('harnesses', {}).get('loop', {}).get('commit')
         if actual_commit != expected_commit:

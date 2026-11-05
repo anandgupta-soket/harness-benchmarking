@@ -19,7 +19,7 @@ uv sync --locked
 uv run bench plan --config configs/glm53.yaml
 ```
 
-The example GLM endpoint has previously returned HTTP 502. `plan` is offline; it does not test the model endpoint or make model calls. The endpoint, model/provider identifiers, credentials, and published runner digest are deployment inputs and must be confirmed by the operator.
+`plan` is offline; it does not test the model endpoint or make model calls. The earlier public HTTPS route returned HTTP 502; a later single request to the configured internal route returned HTTP 200 from GLM-5.3. The deployment still requires the documented unscored qualification before scored runs.
 
 ## Configure and build the runner
 

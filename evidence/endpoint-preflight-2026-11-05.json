@@ -24,9 +24,42 @@
         "code": "upstream_error",
         "message": "The model is unavailable right now."
       }
+    },
+    {
+      "recorded_at": "2026-11-05T13:03:00Z",
+      "source": "temporary Python 3.12.8-alpine3.21 Pod; API key via SecretKeyRef; no response content retained",
+      "path": "/chat/completions",
+      "max_tokens": 8,
+      "http_status": 200,
+      "latency_ms": 1835.2,
+      "observed_model": "GLM-5.3",
+      "usage": {"prompt_tokens": 17, "completion_tokens": 8, "total_tokens": 25},
+      "content_ok": false,
+      "temporary_pod_deleted": true
     }
   ],
-  "qualification_status": "blocked",
+  "internal_route_attempts": {
+    "url": "http://172.17.99.145:30000/v1/chat/completions",
+    "unauthenticated_attempt": {
+      "http_status": 401,
+      "reason": "stdin closed before credential input; empty temporary Secret was used",
+      "temporary_pod_deleted": true,
+      "temporary_secret_deleted": true
+    },
+    "authenticated_attempt": {
+      "recorded_at": "2026-11-05T13:03:00Z",
+      "source": "temporary Python 3.12.8-alpine3.21 Pod; temporary SecretKeyRef; no credential persisted in evidence",
+      "http_status": 200,
+      "latency_ms": 2054.2,
+      "observed_model": "GLM-5.3",
+      "usage": {"prompt_tokens": 15, "completion_tokens": 61, "total_tokens": 76},
+      "content": "OK",
+      "temporary_pod_deleted": true,
+      "temporary_secret_deleted": true
+    },
+    "persistent_secret": "bench-internal-api-key"
+  },
+  "qualification_status": "internal endpoint reachable and returned exact OK once; approved unscored qualification pending",
   "temporary_pods_deleted": true,
-  "credentials_stored": false
+  "credentials_stored": "Kubernetes Secret bench-internal-api-key only; no local credential copy"
 }

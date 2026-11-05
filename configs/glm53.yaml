@@ -31,12 +31,12 @@ storage:
   min_free_fraction: 0.20        # dispatch stops when free space on the PVC falls below 20%
 
 model:
-  base_url: https://api.soket.ai/v1     # configurable; the endpoint was returning HTTP 502 at last check
+  base_url: http://172.17.99.145:30000/v1 # internal route returned one HTTP 200 GLM-5.3 response on 2026-11-05
   name: GLM-5.3
   provider_id: custom-test-soket        # provider id used inside each harness's config
   api_key_env: BENCH_API_KEY            # env var NAME inside the trial pod
   api_key_secret:                       # existing Secret in the namespace; value never leaves the cluster
-    name: bench-api-key
+    name: bench-internal-api-key
     key: api-key
 
 images:

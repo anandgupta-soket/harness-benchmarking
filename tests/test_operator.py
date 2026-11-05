@@ -102,6 +102,17 @@ def test_config_rejects_credentials_and_provider_path_escape():
     assert all('not-a-key-to-print' not in x for x in p)
 
 
+def test_config_allows_only_the_explicit_internal_http_endpoint():
+    d = copy.deepcopy(make_cfg().data)
+    d['model']['base_url'] = 'http://172.17.99.145:30000/v1'
+    problems, unresolved = validate(d)
+    assert not unresolved
+    assert not any('base_url' in problem for problem in problems)
+    d['model']['base_url'] = 'http://api.soket.ai/v1'
+    problems, _ = validate(d)
+    assert any('base_url must use https' in problem for problem in problems)
+
+
 def test_archive_report_rejects_traversal(tmp_path, monkeypatch, capsys):
     import io, tarfile, types, sys
     monkeypatch.setitem(sys.modules, 'bench.report', types.SimpleNamespace(generate_report=lambda *a: {}))
