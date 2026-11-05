@@ -66,7 +66,7 @@ RUN npm ci --prefix /opt/bench-tools \
     && rm -f /tmp/goose-install.sh \
     && loop --version | grep -F '0.6.0' \
     && pi --version | grep -F "${PI_VERSION}" \
-    && goose --version | grep -F "${GOOSE_VERSION}"
+    && python3 -c 'import subprocess; r=subprocess.run(["goose", "--version"], capture_output=True, text=True); out=(r.stdout or "") + (r.stderr or ""); print(f"goose --version exit={r.returncode}; output={out!r}"); assert r.returncode == 0 and "1.57.0" in out'
 
 # A compact manifest lets the controller verify the exact three installed
 # harnesses and Loop source commit before creating any workloads.
