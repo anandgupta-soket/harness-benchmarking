@@ -17,6 +17,7 @@ RUN cargo build --locked --release -p loop-cli \
 
 FROM node:22.21.0-bookworm-slim
 ARG LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
+ARG LOOP_VERSION=0.6.0
 ARG PI_VERSION=0.73.1
 ARG GOOSE_VERSION=1.57.0
 ARG UV_VERSION=0.9.28
@@ -63,10 +64,24 @@ RUN npm ci --prefix /opt/bench-tools \
     && ln -s /opt/bench-tools/node_modules/.bin/pi /usr/local/bin/pi \
     && curl -fsSL "https://github.com/aaif-goose/goose/releases/download/v${GOOSE_VERSION}/download_cli.sh" -o /tmp/goose-install.sh \
     && CONFIGURE=false GOOSE_VERSION="v${GOOSE_VERSION}" GOOSE_BIN_DIR=/usr/local/bin bash /tmp/goose-install.sh \
-    && rm -f /tmp/goose-install.sh \
-    && loop --version | grep -F '0.6.0' \
-    && pi --version | grep -F "${PI_VERSION}" \
-    && python3 -c 'import subprocess; r=subprocess.run(["goose", "--version"], capture_output=True, text=True); out=(r.stdout or "") + (r.stderr or ""); print(f"goose --version exit={r.returncode}; output={out!r}"); assert r.returncode == 0 and "1.57.0" in out'
+    && rm -f /tmp/goose-install.sh
+
+# These CLIs print their version on different streams. Capture both and require
+# a successful command plus the exact pinned version before publishing.
+RUN python3 - <<PY
+import subprocess
+
+for command, expected in [
+    (["loop", "--version"], "${LOOP_VERSION}"),
+    (["pi", "--version"], "${PI_VERSION}"),
+    (["goose", "--version"], "${GOOSE_VERSION#v}"),
+]:
+    result = subprocess.run(command, capture_output=True, text=True)
+    output = (result.stdout or "") + (result.stderr or "")
+    print(f"{command[0]} --version exit={result.returncode}; output={output!r}", flush=True)
+    if result.returncode != 0 or expected not in output:
+        raise SystemExit(f"{command[0]} version check failed: expected {expected}")
+PY
 
 # A compact manifest lets the controller verify the exact three installed
 # harnesses and Loop source commit before creating any workloads.
