@@ -115,9 +115,11 @@ RUN git init /opt/hermes-src \
     && loop --version | grep -F '0.6.0' \
     && pi --version | grep -F "${PI_VERSION}" \
     && echo "PATH=${PATH}" \
-    && command -v opencode \
-    && ls -l /opt/bench-tools/node_modules/.bin/opencode /opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe \
-    && readlink -f "$(command -v opencode)" \
+    && (ls -l /opt/bench-tools/node_modules/.bin/opencode /opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe 2>&1 || true) \
+    && (readlink -f /opt/bench-tools/node_modules/.bin/opencode 2>&1 || true) \
+    && (command -v opencode || true) \
+    && (/opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe --version >/tmp/opencode-native-version.stdout 2>/tmp/opencode-native-version.stderr; status=$?; \
+        echo "OpenCode native binary exit=$status"; cat /tmp/opencode-native-version.stdout; cat /tmp/opencode-native-version.stderr; test "$status" -eq 0) \
     && (opencode --version >/tmp/opencode-version.stdout 2>/tmp/opencode-version.stderr; status=$?; \
         echo "opencode --version exit=$status"; \
         echo "opencode --version stdout:"; cat /tmp/opencode-version.stdout; \
