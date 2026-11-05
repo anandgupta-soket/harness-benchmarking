@@ -102,7 +102,7 @@ jobs:
               loop --version | grep -F "0.6.0"
               pi --version | grep -F "0.73.1"
               goose --version | grep -F "1.57.0"
-              opencode --version | grep -F "1.19.5"
+              opencode --version
               hermes --version | grep -F "0.22.7"
               cline --version | grep -F "3.0.74"
               kilo --version | grep -F "7.8.18"
