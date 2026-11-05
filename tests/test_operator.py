@@ -124,3 +124,15 @@ def test_archive_report_rejects_traversal(tmp_path, monkeypatch, capsys):
     assert main(['report', '--input', str(archive), '--output', str(tmp_path / 'report')]) == 2
     assert 'unsafe' in capsys.readouterr().err
     assert not (tmp_path / 'escape').exists()
+
+
+def test_qualification_matrix_must_cover_every_scored_harness():
+    """An all-nine scored run must not be 'qualified' by a 4-harness matrix smoke."""
+    from bench.config import HARNESSES, load_config
+    data = copy.deepcopy(load_config('configs/glm53.yaml').data)
+    data['qualification']['matrix']['harnesses'] = ['loop', 'pi', 'goose', 'opencode']
+    problems, _ = validate(data)
+    assert any('qualification.matrix.harnesses' in p for p in problems)
+    data['qualification']['matrix']['harnesses'] = list(HARNESSES)
+    problems, _ = validate(data)
+    assert not any('qualification.matrix.harnesses' in p for p in problems)

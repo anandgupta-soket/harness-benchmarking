@@ -61,3 +61,47 @@ def test_rust_baseline_is_a_negative_control(tmp_path: Path, task_id: str, fixtu
     submission.mkdir()
     result = verification.verify(task_id, submission, tmp_path / f"out-{task_id}")
     assert result["passed"] is False
+
+
+REAL_FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
+
+
+def _read_only_fixtures(tmp_path: Path) -> Path:
+    """Mimic the runner image: fixture files *and* directories lose write bits."""
+    root = tmp_path / "ro-fixtures"
+    real = REAL_FIXTURES
+    shutil.copytree(real, root, symlinks=True, ignore=shutil.ignore_patterns("node_modules", "target", ".git"))
+    # Trusted browser/node dependencies are resolved from FIXTURES_DIR/dark-mode-site/node_modules.
+    if (real / "dark-mode-site/node_modules").is_dir():
+        (root / "dark-mode-site/node_modules").symlink_to(real / "dark-mode-site/node_modules")
+    for path in sorted(root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+        if not path.is_symlink():
+            path.chmod(path.stat().st_mode & ~0o222)
+    root.chmod(root.stat().st_mode & ~0o222)
+    return root
+
+
+@pytest.fixture
+def read_only_fixtures(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    root = _read_only_fixtures(tmp_path)
+    monkeypatch.setattr(verification, "FIXTURES_DIR", root)
+    yield root
+    for path in [root, *root.rglob("*")]:  # let pytest clean up tmp_path
+        if not path.is_symlink():
+            path.chmod(path.stat().st_mode | 0o700)
+
+
+@pytest.mark.parametrize("task_id,fixture", [
+    ("BUG-01", "mini-calc-buggy"), ("FEAT-01", "mini-calc"), ("REF-01", "mini-calc"),
+    ("WEB-BUG-01", "mini-web"), ("FEAT-02", "dark-mode-site"),
+])
+def test_verifier_works_on_read_only_image_fixtures(tmp_path: Path, read_only_fixtures: Path, task_id: str, fixture: str) -> None:
+    """Regression: image fixtures are read-only (files and dirs); the private verifier copy must still be writable."""
+    submission = tmp_path / "submission"
+    shutil.copytree(REAL_FIXTURES / fixture, submission, ignore=shutil.ignore_patterns("node_modules", "target", ".git"))
+    if task_id == "REF-01":
+        # A new helper file needs a writable *directory* in the verifier copy.
+        (submission / "src/helper.rs").write_text("pub fn identity(x: i32) -> i32 { x }\n")
+    result = verification.verify(task_id, submission, tmp_path / "out")
+    assert result["errors"] == [], result["errors"]
+    assert "Permission denied" not in str(result["checks"])

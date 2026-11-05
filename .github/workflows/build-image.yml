@@ -99,16 +99,18 @@ jobs:
               rustc --version
               node --version
               python --version
-              loop --version | grep -F "0.6.0"
-              pi --version | grep -F "0.73.1"
-              goose --version | grep -F "1.57.0"
-              OPENCODE_VERSION_OUTPUT="$(opencode --version 2>&1)"
-              printf '%s\n' "$OPENCODE_VERSION_OUTPUT" | grep -F "1.19.5"
+              # Some CLIs (e.g. Pi) print their version on stderr: capture both streams.
+              loop --version 2>&1 | grep -F "0.6.0"
+              pi --version 2>&1 | grep -F "0.73.1"
+              goose --version 2>&1 | grep -F "1.57.0"
+              opencode --version 2>&1 | grep -F "1.19.5"
               opencode --help >/dev/null 2>&1
-              hermes --version | grep -F "0.22.7"
-              cline --version | grep -F "3.0.74"
-              kilo --version | grep -F "7.8.18"
-              omp --version | grep -F "18.16.0"
+              hermes --version 2>&1 | grep -F "0.22.7"
+              cline --version 2>&1 | grep -F "3.0.74"
+              kilo --version 2>&1 | grep -F "7.8.18"
+              omp --version 2>&1 | grep -F "18.16.0"
+              "$DSH_PYTHON" -c "import deepseek_harness"
+              ls "$PLAYWRIGHT_BROWSERS_PATH" | grep -q chromium
               kubectl version --client --output=yaml | grep -F "gitVersion: v1.30.14"
               mkdir /work/write-check && touch /work/write-check/ok
               test ! -r /opt/bench/controls/run_controls.py

@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 from pathlib import Path
@@ -34,6 +35,24 @@ _FIXTURE = {
     "WEB-BUG-01": "mini-web", "WEB-FEAT-01": "mini-web", "WEB-REF-01": "mini-web",
     **{k: "dark-mode-site" for k in ("FEAT-02", "FEAT-03", "FEAT-04", "FEAT-05", "FEAT-06")},
 }
+
+
+def make_tree_writable(root: Path) -> None:
+    """Grant the owner write access across a private temp copy of the fixtures.
+
+    The runner image removes write bits from trusted fixture files *and*
+    directories (``chmod -R a-w``), and ``shutil.copytree`` preserves those
+    modes. Verifier checks (overlay of new files, cargo ``target/``, node test
+    output) and ``TemporaryDirectory`` cleanup all need a writable tree. Only
+    call this on copies; the protected source fixture is never modified.
+    """
+    for path in (root, *root.rglob("*")):
+        if path.is_symlink():
+            continue
+        mode = stat.S_IMODE(path.stat().st_mode) | stat.S_IWUSR
+        if path.is_dir():
+            mode |= stat.S_IXUSR
+        path.chmod(mode)
 
 
 def _safe_overlay(task_id: str, submission: Path, destination: Path) -> None:
@@ -188,6 +207,7 @@ def verify(task_id: str, submission: Path, output_dir: Path) -> dict[str, Any]:
         with tempfile.TemporaryDirectory(prefix=f"verify-{task_id.lower()}-") as td:
             work = Path(td) / "fixture"
             shutil.copytree(fixture, work, ignore=shutil.ignore_patterns("node_modules", "target", ".git"))
+            make_tree_writable(work)
             _safe_overlay(task_id, Path(submission), work)
             if task_id in {"BUG-01", "FEAT-01", "AGENT-01", "REF-01", "TOOL-01"}:
                 # Trusted integration tests are injected after overlay so a

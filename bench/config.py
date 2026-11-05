@@ -180,6 +180,10 @@ def validate(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     commit = _get(data, "loop.commit")
     if isinstance(commit, str) and not is_placeholder(commit) and not SHA_RE.match(commit):
         problems.append("loop.commit must be a full 40-hex SHA")
+    qual_harnesses = list(((data.get("qualification") or {}).get("matrix") or {}).get("harnesses") or [])
+    missing_q = [h for h in harnesses if h not in qual_harnesses]
+    if missing_q:
+        problems.append("qualification.matrix.harnesses must include every scored harness; missing: " + ", ".join(missing_q))
     for h in harnesses:
         if h not in HARNESSES:
             problems.append(f"unknown harness {h!r}")

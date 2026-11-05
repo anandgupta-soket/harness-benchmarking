@@ -35,7 +35,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DSH_PYTHON=/opt/dsh-venv/bin/python \
     RUSTUP_HOME=/usr/local/rustup \
     UV_PYTHON_INSTALL_DIR=/opt/python \
-    PATH=/opt/bench/.venv/bin:/opt/bench-tools/node_modules/.bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin
+    PATH=/opt/bench/.venv/bin:/opt/bench-tools/node_modules/.bin:/usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       python3 python3-venv python3-pip python-is-python3 curl git ca-certificates jq xz-utils bzip2 \
@@ -94,8 +94,7 @@ RUN npm ci --prefix /opt/bench-tools \
 RUN curl -fsSL "https://github.com/aaif-goose/goose/releases/download/v${GOOSE_VERSION}/download_cli.sh" \
       -o /tmp/goose-install.sh \
     && CONFIGURE=false GOOSE_VERSION="v${GOOSE_VERSION}" GOOSE_BIN_DIR=/usr/local/bin bash /tmp/goose-install.sh \
-    && rm -f /tmp/goose-install.sh \
-    && goose --version | grep -F "${GOOSE_VERSION}"
+    && rm -f /tmp/goose-install.sh
 
 # Hermes must be installed from its pinned source release (PyPI is stale and
 # current source installs require Python 3.14); OMP ships a pinned Linux binary.
@@ -111,27 +110,29 @@ RUN git init /opt/hermes-src \
        -o /usr/local/bin/omp \
     && echo '6498ed785bab00d2926e0387e0ec02362d6d45f1c3d0d1b57c1618b7f95c9264  /usr/local/bin/omp' | sha256sum -c - \
     && chmod 0755 /usr/local/bin/omp \
-    && node -e 'for (const [p,v] of [["@mariozechner/pi-coding-agent", process.env.PI_VERSION], ["opencode-ai", process.env.OPENCODE_VERSION], ["cline", process.env.CLINE_VERSION], ["@kilocode/cli", process.env.KILO_VERSION]]) { const actual = require(`/opt/bench-tools/node_modules/${p}/package.json`).version; if (actual !== v) throw new Error(`${p}: ${actual} != ${v}`) }' \
-    && loop --version | grep -F '0.6.0' \
-    && pi --version | grep -F "${PI_VERSION}" \
-    && echo "PATH=${PATH}" \
-    && (ls -l /opt/bench-tools/node_modules/.bin/opencode /opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe 2>&1 || true) \
-    && (readlink -f /opt/bench-tools/node_modules/.bin/opencode 2>&1 || true) \
-    && (command -v opencode || true) \
-    && (/opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe --version >/tmp/opencode-native-version.stdout 2>/tmp/opencode-native-version.stderr; status=$?; \
-        echo "OpenCode native binary exit=$status"; cat /tmp/opencode-native-version.stdout; cat /tmp/opencode-native-version.stderr; test "$status" -eq 0) \
-    && (opencode --version >/tmp/opencode-version.stdout 2>/tmp/opencode-version.stderr; status=$?; \
-        echo "opencode --version exit=$status"; \
-        echo "opencode --version stdout:"; cat /tmp/opencode-version.stdout; \
-        echo "opencode --version stderr:"; cat /tmp/opencode-version.stderr; \
-        test "$status" -eq 0; \
-        cat /tmp/opencode-version.stdout /tmp/opencode-version.stderr >/tmp/opencode-binary-version; \
-        grep -F "${OPENCODE_VERSION}" /tmp/opencode-binary-version) \
-    && python -c 'import json; from pathlib import Path; p=Path("/opt/bench/image-manifest.json"); d=json.loads(p.read_text()); d["harnesses"]["opencode"]["binary_version_output"]=Path("/tmp/opencode-binary-version").read_text().strip(); p.write_text(json.dumps(d, indent=2) + "\n")' \
-    && cline --version | grep -F "${CLINE_VERSION}" \
-    && kilo --version | grep -F "${KILO_VERSION}" \
-    && omp --version | grep -F "${OMP_VERSION}" \
-    && hermes --version | grep -F "${HERMES_VERSION}"
+    && node -e 'for (const [p,v] of [["@mariozechner/pi-coding-agent", process.env.PI_VERSION], ["opencode-ai", process.env.OPENCODE_VERSION], ["cline", process.env.CLINE_VERSION], ["@kilocode/cli", process.env.KILO_VERSION]]) { const actual = require(`/opt/bench-tools/node_modules/${p}/package.json`).version; if (actual !== v) throw new Error(`${p}: ${actual} != ${v}`) }'
+
+# Capture both output streams and preserve each CLI's exit status. Some pinned
+# versions (including Pi) print the version to stderr, so stdout-only greps
+# incorrectly fail even though the binary works.
+RUN set -eu; \
+    verify_version() { \
+      name="$1"; expected="$2"; shift 2; status=0; \
+      output="$("$@" 2>&1)" || status=$?; \
+      echo "$name --version exit=$status"; printf '%s\n' "$output"; \
+      test "$status" -eq 0; \
+      printf '%s\n' "$output" > "/tmp/${name}-version-output"; \
+      printf '%s\n' "$output" | grep -F "$expected" >/dev/null; \
+    }; \
+    verify_version loop 0.6.0 loop --version; \
+    verify_version pi "${PI_VERSION}" pi --version; \
+    verify_version goose "${GOOSE_VERSION}" goose --version; \
+    verify_version opencode "${OPENCODE_VERSION}" opencode --version; \
+    verify_version hermes "${HERMES_VERSION}" hermes --version; \
+    verify_version cline "${CLINE_VERSION}" cline --version; \
+    verify_version kilo "${KILO_VERSION}" kilo --version; \
+    verify_version omp "${OMP_VERSION}" omp --version; \
+    python -c 'import json; from pathlib import Path; p=Path("/opt/bench/image-manifest.json"); d=json.loads(p.read_text()); d["harnesses"]["opencode"]["binary_version_output"]=Path("/tmp/opencode-version-output").read_text().strip(); p.write_text(json.dumps(d, indent=2) + "\n")'
 
 # No agent UID is the container's default: the worker supervisor must start as
 # root to drop privileges, keep artifacts root-only, and run independent checks.

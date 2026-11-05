@@ -6,35 +6,15 @@ fixtures and pass through the same real verifier used for benchmark results.
 from __future__ import annotations
 
 import json
-import stat
 import shutil
 import tempfile
 from pathlib import Path
 
 from bench.paths import FIXTURES_DIR
 from bench.tasks import TASK_IDS
-from bench.verification import _ALLOW, _FIXTURE, verify
+from bench.verification import _ALLOW, _FIXTURE, make_tree_writable, verify
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def _make_temp_tree_writable(root: Path) -> None:
-    """Restore owner write permission on copies of the read-only image fixtures.
-
-    The image deliberately removes write bits from trusted fixture sources.
-    ``copytree`` preserves those mode bits, while the controls job drops all
-    capabilities; make only its private temporary copies writable for positive
-    edits and verifier build outputs.
-    """
-    for path in (root, *root.rglob("*")):
-        if path.is_symlink():
-            continue
-        mode = stat.S_IMODE(path.stat().st_mode)
-        if path.is_dir():
-            mode |= stat.S_IWUSR | stat.S_IXUSR
-        else:
-            mode |= stat.S_IWUSR
-        path.chmod(mode)
 
 
 def _site_solution(base: Path) -> None:
@@ -87,7 +67,7 @@ def _site_solution(base: Path) -> None:
 def _solution(task: str, candidate: Path) -> None:
     fixture = FIXTURES_DIR / _FIXTURE[task]
     shutil.copytree(fixture, candidate, ignore=shutil.ignore_patterns("node_modules", "target", ".git"))
-    _make_temp_tree_writable(candidate)
+    make_tree_writable(candidate)
     if task in ("BUG-01", "AGENT-01", "TOOL-01"):
         p = candidate / "src/lib.rs"
         s = p.read_text().replace("a - b", "a + b").replace('''    if n % 2 == 0 {
@@ -146,7 +126,7 @@ def main() -> int:
             negative_dir.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(FIXTURES_DIR / _FIXTURE[task], negative_dir,
                             ignore=shutil.ignore_patterns("node_modules", "target", ".git"))
-            _make_temp_tree_writable(negative_dir)
+            make_tree_writable(negative_dir)
             negative = verify(task, negative_dir, tmp / "out" / "negative" / task)
             summaries[task] = {"positive": positive["passed"], "negative_rejected": not negative["passed"],
                                "failed_checks": [c for c in positive["checks"] if not c["passed"]],

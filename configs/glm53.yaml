@@ -65,3 +65,13 @@ harnesses:
 limits_disclosure:
   token_ceiling: not-enforced
   turn_ceiling: not-enforced
+
+# Unscored qualification must exercise every scored harness; config validation
+# rejects a qualification matrix that omits any of them.
+qualification:
+  protocol: {task: BUG-01, profile_mib: 2048}
+  matrix:
+    harnesses: [loop, pi, goose, opencode, hermes, cline, kilo, omp, deepseek-harness]
+    tasks: [BUG-01, FEAT-02, WEB-BUG-01]
+    profiles: [512, 2048]
+    repetitions: 1
