@@ -321,6 +321,10 @@ def run_trial(p: TrialParams, *, cg: cgm.Cgroup | None = None,
             shutil.rmtree(project)
         shutil.copytree(p.fixtures.parent / p.fixture_rel if not Path(p.fixture_rel).is_absolute() else p.fixture_rel,
                         project, ignore=shutil.ignore_patterns("node_modules", "target", "__pycache__", ".git"), symlinks=False)
+        # The image keeps fixtures read-only; the agent's private working copy must be writable or every
+        # harness wastes steps (or fails) on EACCES before it can edit anything.
+        from .verification import make_tree_writable
+        make_tree_writable(project)
         home.mkdir(parents=True, exist_ok=True)
         if p.agent_uid is not None:
             _chown_tree(project, p.agent_uid)

@@ -95,3 +95,20 @@ def test_cline_authenticates_then_runs_without_provider_flags(tmp_path, monkeypa
     assert run[0] == "cline" and "--yolo" in run and "--json" in run
     assert "-P" not in run and "-m" not in run and "-k" not in run
     assert "sk-abc123" not in " ".join(inv.cmd) and inv.env["BENCH_API_KEY"] == "sk-abc123"
+
+
+def test_cline_3074_tool_calls_are_counted_from_agent_events():
+    import json as _j, sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import run_task as rt
+    ev = lambda **kw: _j.dumps({"type": "agent_event", "event": kw})
+    out = "\n".join([
+        ev(type="content_start", contentType="reasoning", reasoning="x"),
+        ev(type="content_start", contentType="tool", toolName="run_commands", input={}),
+        ev(type="content_end", contentType="tool", toolName="run_commands", output=[]),
+        ev(type="content_start", contentType="tool", toolName="editor", input={}),
+        ev(type="content_start", contentType="text", text="done"),
+        _j.dumps({"type": "run_result", "iterations": 2, "aggregateUsage": {"inputTokens": 100, "outputTokens": 10}, "model": {"id": "GLM-5.3"}}),
+    ])
+    m = rt.metrics_from_cline_events(out)
+    assert m["tool_calls"] == 2 and m["total_tokens"] == 110 and m["assistant_turns"] == 2

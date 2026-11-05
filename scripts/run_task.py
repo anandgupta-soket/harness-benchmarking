@@ -739,6 +739,11 @@ def metrics_from_cline_events(stdout: str) -> dict[str, Any] | None:
             result = event
         elif event.get("type") == "hook_event" and event.get("hookEventName") == "tool_call":
             tool_calls += 1
+        elif event.get("type") == "agent_event":
+            # 3.0.74: every tool invocation starts a content_start event with contentType "tool"
+            inner = event.get("event") if isinstance(event.get("event"), dict) else {}
+            if inner.get("type") == "content_start" and inner.get("contentType") == "tool":
+                tool_calls += 1
     if result is None:
         return None
     usage = result.get("aggregateUsage") if isinstance(result.get("aggregateUsage"), dict) else result.get("usage") or {}
