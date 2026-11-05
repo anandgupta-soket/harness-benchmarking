@@ -1,0 +1,9 @@
+{
+  "name": "loop-bench-pilot-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pinned Node CLIs for the Loop, Pi, and Goose pilot image",
+  "dependencies": {
+    "@mariozechner/pi-coding-agent": "0.73.1"
+  }
+}

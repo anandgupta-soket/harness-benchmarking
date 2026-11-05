@@ -1,0 +1,60 @@
+# Reduced, unscored qualification pilot for Loop, Pi, and Goose.
+# The image tag is populated by the dedicated build-pilot workflow; resolve its
+# immutable digest before running a scored experiment.
+experiment:
+  name: glm53-pilot
+  seed: 20261105
+  repetitions: 5
+  memory_mib: [256, 512, 1024, 2048]
+  cpu: 1
+  max_concurrent_trials: 4
+  reference_memory_mib: 2048
+
+kube:
+  access: ssh
+  ssh_host: kube.dev.soket.ai
+  namespace: bench-constrained
+  context: null
+  worker_node: soketlab-worker001
+
+storage:
+  pvc_name: bench-data
+  size: 20Gi
+  storage_class: local-path
+  min_free_fraction: 0.20
+
+model:
+  base_url: http://172.17.99.145:30000/v1
+  name: GLM-5.3
+  provider_id: custom-test-soket
+  api_key_env: BENCH_API_KEY
+  api_key_secret:
+    name: bench-internal-api-key
+    key: api-key
+
+images:
+  runner: UNRESOLVED
+
+loop:
+  repo: soketlabs/loop
+  commit: 1dc7ef4a96b19e450d33629035341f0725b38f81
+
+harnesses:
+  loop: {version: "0.6.0", source: "git soketlabs/loop @ loop.commit"}
+  pi: {version: "0.73.1", package: "npm @mariozechner/pi-coding-agent"}
+  goose: {version: "1.57.0", package: "github release aaif-goose/goose"}
+
+matrix:
+  harnesses: [loop, pi, goose]
+
+qualification:
+  protocol: {task: BUG-01, profile_mib: 2048}
+  matrix:
+    harnesses: [loop, pi, goose]
+    tasks: [BUG-01, FEAT-02, WEB-BUG-01]
+    profiles: [512, 2048]
+    repetitions: 1
+
+limits_disclosure:
+  token_ceiling: not-enforced
+  turn_ceiling: not-enforced

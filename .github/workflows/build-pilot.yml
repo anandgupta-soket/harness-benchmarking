@@ -1,0 +1,83 @@
+name: Build and publish reduced benchmark pilot image
+
+on:
+  push:
+    branches:
+      - feat/constrained-kube-benchmark
+    paths:
+      - .github/workflows/build-pilot.yml
+      - docker/Dockerfile.pilot
+      - docker/pilot-package.json
+      - docker/pilot-package-lock.json
+      - configs/glm53-pilot.yaml
+      - bench/**
+      - controls/**
+      - fixtures/**
+      - pyproject.toml
+      - scripts/**
+      - tasks/**
+      - tests/**
+      - uv.lock
+      - verifiers/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish pilot image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.pilot
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/loop-bench-pilot:pilot-${{ github.sha }}
+          cache-from: type=gha,scope=loop-build
+          cache-to: type=gha,scope=pilot-image,mode=max
+          build-args: |
+            LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
+
+      - name: Smoke test pilot image as agent user
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/loop-bench-pilot:pilot-${{ github.sha }}
+        run: |
+          docker pull "$IMAGE"
+          docker run --rm --user 10001 --read-only --cap-drop=ALL --security-opt=no-new-privileges \
+            --tmpfs /work:uid=10001,gid=10001,mode=0700 --tmpfs /tmp \
+            -e HOME=/work -e TMPDIR=/tmp --entrypoint sh "$IMAGE" -ec '
+              for cmd in loop node npm python python3 pi goose cargo rustc kubectl; do command -v "$cmd" >/dev/null; done
+              cargo --version
+              rustc --version
+              kubectl version --client --output=yaml | grep -F "gitVersion: v1.30.14"
+              loop --version | grep -F "0.6.0"
+              pi --version | grep -F "0.73.1"
+              goose --version | grep -F "1.57.0"
+              python -c "import json; m=json.load(open(\"/opt/bench/image-manifest.json\")); assert set(m[\"harnesses\"]) == {\"loop\",\"pi\",\"goose\"}"
+              test ! -r /opt/bench/controls/run_controls.py
+              test ! -r /opt/bench/bench/verification.py
+              test ! -r /opt/bench/verifiers/mini_web_ui.test.js
+              test ! -r /opt/bench/fixtures/mini-calc-buggy/src/lib.rs
+              mkdir /work/write-check && touch /work/write-check/ok
+            '
+
+      - name: Report immutable pilot image reference
+        run: echo "ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/loop-bench-pilot:pilot-${GITHUB_SHA}@${{ steps.build.outputs.digest }}"

@@ -1,0 +1,99 @@
+# syntax=docker/dockerfile:1.7
+# Keep this build stage byte-for-byte aligned with docker/Dockerfile so BuildKit
+# can reuse the pinned Loop build cache across the full and pilot images.
+FROM rust:1.88.0-bookworm AS loop-build
+ARG LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
+RUN apt-get update && apt-get install -y --no-install-recommends git pkg-config ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+RUN rustup component add clippy rustfmt --toolchain 1.88.0-x86_64-unknown-linux-gnu
+RUN git init /src/loop \
+    && git -C /src/loop remote add origin https://github.com/soketlabs/loop.git \
+    && git -C /src/loop fetch --depth=1 origin "${LOOP_COMMIT}" \
+    && git -C /src/loop checkout --detach FETCH_HEAD \
+    && test "$(git -C /src/loop rev-parse HEAD)" = "${LOOP_COMMIT}"
+WORKDIR /src/loop
+RUN cargo build --locked --release -p loop-cli \
+    && install -D target/release/loop /out/loop
+
+FROM node:22.21.0-bookworm-slim
+ARG LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
+ARG PI_VERSION=0.73.1
+ARG GOOSE_VERSION=1.57.0
+ARG UV_VERSION=0.9.28
+ARG KUBECTL_VERSION=1.30.14
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers \
+    BENCH_NODE_PATH=/opt/bench-tools/node_modules \
+    RUSTUP_HOME=/usr/local/rustup \
+    PATH=/opt/bench/.venv/bin:/opt/bench-tools/node_modules/.bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      python3 python3-venv python3-pip python-is-python3 curl git ca-certificates jq xz-utils bzip2 \
+      build-essential pkg-config libssl-dev libsqlite3-0 libffi8 libstdc++6 procps tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --break-system-packages --no-cache-dir "uv==${UV_VERSION}"
+
+WORKDIR /opt/bench
+COPY pyproject.toml uv.lock ./
+COPY bench/ ./bench/
+COPY scripts/ ./scripts/
+COPY tasks/ ./tasks/
+COPY fixtures/ ./fixtures/
+COPY controls/ ./controls/
+COPY verifiers/ ./verifiers/
+COPY tests/ ./tests/
+COPY --from=loop-build /out/loop /usr/local/bin/loop
+COPY --from=loop-build /usr/local/cargo /usr/local/cargo
+COPY --from=loop-build /usr/local/rustup /usr/local/rustup
+
+RUN uv sync --frozen --no-dev --python /usr/bin/python3 \
+    && npm ci --prefix /opt/bench/fixtures/dark-mode-site --ignore-scripts \
+    && /opt/bench/.venv/bin/python -m playwright install --with-deps chromium \
+    && install -d /opt/bench-tools
+RUN curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+    && curl -fsSLo /tmp/kubectl.sha256 "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256" \
+    && echo "$(cat /tmp/kubectl.sha256)  /usr/local/bin/kubectl" | sha256sum -c - \
+    && chmod 0755 /usr/local/bin/kubectl \
+    && kubectl version --client --output=yaml | grep -F "gitVersion: v${KUBECTL_VERSION}"
+COPY docker/pilot-package.json docker/pilot-package-lock.json /opt/bench-tools/
+RUN npm ci --prefix /opt/bench-tools \
+    && npm ls --prefix /opt/bench-tools --depth=0 \
+    && ln -s /opt/bench-tools/node_modules/.bin/pi /usr/local/bin/pi \
+    && curl -fsSL "https://github.com/aaif-goose/goose/releases/download/v${GOOSE_VERSION}/download_cli.sh" -o /tmp/goose-install.sh \
+    && CONFIGURE=false GOOSE_VERSION="v${GOOSE_VERSION}" GOOSE_BIN_DIR=/usr/local/bin bash /tmp/goose-install.sh \
+    && rm -f /tmp/goose-install.sh \
+    && loop --version | grep -F '0.6.0' \
+    && pi --version | grep -F "${PI_VERSION}" \
+    && goose --version | grep -F "${GOOSE_VERSION}"
+
+# A compact manifest lets the controller verify the exact three installed
+# harnesses and Loop source commit before creating any workloads.
+RUN /opt/bench/.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+manifest = {
+  "schema": 1,
+  "harnesses": {
+    "loop": {"version": "0.6.0", "commit": "1dc7ef4a96b19e450d33629035341f0725b38f81"},
+    "pi": {"version": "0.73.1", "package": "@mariozechner/pi-coding-agent"},
+    "goose": {"version": "1.57.0", "repository": "aaif-goose/goose"},
+  },
+  "tools": {"rust": "1.88.0", "python": "3.11", "playwright": "1.64.1", "node": "22.21.0", "kubectl": "1.30.14"},
+}
+Path("/opt/bench/image-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+PY
+
+RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin bench-agent \
+    && chmod 0755 /opt/bench /opt/bench/bench /opt/bench/scripts /opt/bench/tasks \
+    && chmod -R go-rwx /opt/bench/controls /opt/bench/verifiers /opt/bench/tests /opt/bench/fixtures \
+    && chmod 0400 /opt/bench/bench/verification.py \
+    && find /opt/bench -type d -name __pycache__ -prune -exec rm -rf {} + \
+    && find /opt/bench -type f -name '*.pyc' -exec chmod 0400 {} + \
+    && chmod -R a+rX /opt/pw-browsers /opt/bench/fixtures/dark-mode-site/node_modules \
+    && chmod 0711 /opt/bench/fixtures /opt/bench/fixtures/dark-mode-site \
+    && chmod -R a-w /opt/bench /opt/bench-tools /opt/pw-browsers /usr/local/cargo /usr/local/rustup
+
+WORKDIR /opt/bench
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["python", "-m", "bench.controller"]
