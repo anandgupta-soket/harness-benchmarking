@@ -45,6 +45,19 @@ jobs:
           echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/loop-bench-runner" >> "$GITHUB_OUTPUT"
           echo "tag=${IMAGE_TAG:-runner-${GITHUB_SHA}}" >> "$GITHUB_OUTPUT"
 
+      - name: Cache pinned Loop binary build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: loop-build
+          platforms: linux/amd64
+          push: false
+          cache-from: type=gha,scope=loop-build
+          cache-to: type=gha,scope=loop-build,mode=max
+          build-args: |
+            LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
+
       - name: Build and push linux/amd64 image
         id: build
         uses: docker/build-push-action@v6
@@ -54,6 +67,10 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+          cache-from: |
+            type=gha,scope=loop-build
+            type=gha,scope=runner-image
+          cache-to: type=gha,scope=runner-image,mode=max
           build-args: |
             LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
 

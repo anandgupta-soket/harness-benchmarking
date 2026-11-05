@@ -92,7 +92,7 @@ RUN npm ci --prefix /opt/bench-tools \
 # its downloaded binary is exactly the version used by the experiment.
 RUN curl -fsSL "https://github.com/aaif-goose/goose/releases/download/v${GOOSE_VERSION}/download_cli.sh" \
       -o /tmp/goose-install.sh \
-    && GOOSE_VERSION="v${GOOSE_VERSION}" GOOSE_BIN_DIR=/usr/local/bin bash /tmp/goose-install.sh \
+    && CONFIGURE=false GOOSE_VERSION="v${GOOSE_VERSION}" GOOSE_BIN_DIR=/usr/local/bin bash /tmp/goose-install.sh \
     && rm -f /tmp/goose-install.sh \
     && goose --version | grep -F "${GOOSE_VERSION}"
 
