@@ -86,7 +86,8 @@ RUN npm ci --prefix /opt/bench-tools \
     && /opt/bench/.venv/bin/python -c 'from importlib.metadata import version; assert version("playwright") == "1.64.1"' \
     && ln -s /opt/bench-tools/node_modules/.bin/pi /usr/local/bin/pi \
     && ln -s /opt/bench-tools/node_modules/.bin/opencode /usr/local/bin/opencode \
-    && ln -s /opt/bench-tools/node_modules/.bin/cline /usr/local/bin/cline \
+    && test -x /opt/bench-tools/node_modules/cline/bin/cline \
+    && ln -s /opt/bench-tools/node_modules/cline/bin/cline /usr/local/bin/cline \
     && ln -s /opt/bench-tools/node_modules/.bin/kilo /usr/local/bin/kilo
 
 # Goose publishes a versioned installer in every release; set GOOSE_VERSION so
