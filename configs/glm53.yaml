@@ -40,7 +40,7 @@ model:
     key: api-key
 
 images:
-  runner: ghcr.io/anandgupta-soket/loop-bench-runner:runner-5063e816ec9582036f9308ed64ff745ede1bfaa4@sha256:e0b559f620627a116c909b5dd5d861e4d3903e7d71fef2cf72880541033d8d93
+  runner: ghcr.io/anandgupta-soket/loop-bench-runner:runner-815969d23ce0d947da3eb92483dd2b853bde287c@sha256:ac6a26bcbf8e16fa6a0797b84623ee135827d47c410ecb7de962862da536dffc
 
 # Worst case with 9 concurrent trials: 12 pods (controller, 9 trials, verifier, reader).
 budget:

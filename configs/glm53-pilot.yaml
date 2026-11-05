@@ -33,7 +33,7 @@ model:
     key: api-key
 
 images:
-  runner: UNRESOLVED
+  runner: ghcr.io/anandgupta-soket/loop-bench-pilot:pilot-99e57f7d25bb55e946412b139d7ef0c8ba986531@sha256:16b5b7877efed5ca79277f17899852cad5479fe073b07a3ea3f7c68b13f6d45d
 
 loop:
   repo: soketlabs/loop
