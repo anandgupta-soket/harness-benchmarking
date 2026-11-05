@@ -115,7 +115,7 @@ RUN git init /opt/hermes-src \
     && loop --version | grep -F '0.6.0' \
     && pi --version | grep -F "${PI_VERSION}" \
     && echo "PATH=${PATH}" \
-    && command -V opencode \
+    && command -v opencode \
     && ls -l /opt/bench-tools/node_modules/.bin/opencode /opt/bench-tools/node_modules/opencode-ai/bin/opencode.exe \
     && readlink -f "$(command -v opencode)" \
     && (opencode --version >/tmp/opencode-version.stdout 2>/tmp/opencode-version.stderr; status=$?; \
