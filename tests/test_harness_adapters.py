@@ -74,7 +74,8 @@ def test_audited_schemas(tmp_path):
     assert y["providers"]["custom-test-soket"]["api"] == "openai-completions" and y["providers"]["custom-test-soket"]["apiKey"] == "BENCH_API_KEY"
     H.build("hermes", c2)
     hy = yaml.safe_load((c2.home / "hermes/config.yaml").read_text())
-    assert hy == {"model": {"default": "GLM-5.3", "provider": "custom", "base_url": "https://api.soket.ai/v1"}}
+    assert hy == {"model": {"default": "GLM-5.3", "provider": "custom", "base_url": "https://api.soket.ai/v1",
+                            "key_env": "BENCH_API_KEY"}}
     H.build("kilo", c2)
     kilo = json.loads((c2.home / ".config/kilo/kilo.json").read_text())
     kp = kilo["provider"]["custom-test-soket"]
@@ -83,11 +84,14 @@ def test_audited_schemas(tmp_path):
     assert kp["models"]["GLM-5.3"]["limit"] == {"context": 128000, "output": 16384}
 
 
-def test_cline_settings_path_and_yolo(tmp_path, monkeypatch):
+def test_cline_authenticates_then_runs_without_provider_flags(tmp_path, monkeypatch):
     monkeypatch.setenv("BENCH_API_KEY", "sk-abc123")
     c = ctx(tmp_path)
     inv = H.build("cline", c)
-    sp = Path(inv.env["CLINE_PROVIDER_SETTINGS_PATH"])
-    d = json.loads(sp.read_text())["providers"]["openai"]["settings"]
-    assert d["protocol"] == "openai-chat" and d["client"] == "openai-compatible" and d["apiKey"] == "sk-abc123"
-    assert (sp.stat().st_mode & 0o777) == 0o600 and "--yolo" in inv.cmd and "sk-abc123" not in " ".join(inv.cmd)
+    # `cline auth` runs first and writes the settings; the run must not pass -P/-m/-k (they replace saved settings).
+    assert inv.cmd[:2] == ["sh", "-c"] and "cline auth -p openai-compatible" in inv.cmd[2]
+    assert '-k "$BENCH_API_KEY"' in inv.cmd[2] and "&& exec" in inv.cmd[2]
+    run = inv.cmd[4:]
+    assert run[0] == "cline" and "--yolo" in run and "--json" in run
+    assert "-P" not in run and "-m" not in run and "-k" not in run
+    assert "sk-abc123" not in " ".join(inv.cmd) and inv.env["BENCH_API_KEY"] == "sk-abc123"

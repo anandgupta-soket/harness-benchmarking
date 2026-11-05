@@ -12,7 +12,7 @@ experiment:
   repetitions: 5
   memory_mib: [256, 512, 1024, 2048]
   cpu: 1
-  max_concurrent_trials: 4
+  max_concurrent_trials: 9   # one full cell (all nine harnesses) at a time
   # 2048 MiB is only a *reference candidate*: it is NOT proven to be unconstrained
   # (see docs/kube-benchmark.md, "Reference profile"). Reports flag it as such.
   reference_memory_mib: 2048
@@ -40,7 +40,12 @@ model:
     key: api-key
 
 images:
-  runner: UNRESOLVED             # e.g. ghcr.io/<org>/loop-bench-runner:<tag>@sha256:... (built by .github/workflows/build-image.yml)
+  runner: ghcr.io/anandgupta-soket/loop-bench-runner:runner-5063e816ec9582036f9308ed64ff745ede1bfaa4@sha256:e0b559f620627a116c909b5dd5d861e4d3903e7d71fef2cf72880541033d8d93
+
+# Worst case with 9 concurrent trials: 12 pods (controller, 9 trials, verifier, reader).
+budget:
+  max_pods: 12
+  max_ephemeral_gi: 70
 
 loop:
   repo: soketlabs/loop

@@ -16,8 +16,8 @@ def test_plan_never_constructs_a_kubernetes_client(monkeypatch, capsys):
     assert main(['plan', '--config', 'configs/glm53.yaml']) == 0
     result = json.loads(capsys.readouterr().out)
     assert result['trials'] == 2340
-    assert result['max_concurrent'] == 4
-    assert result['budget']['pods'] <= 8
+    assert result['max_concurrent'] == 9   # one cell: all nine harnesses together
+    assert result['budget']['pods'] <= 12
 
 
 def test_reader_helper_has_rw_pvc_for_operator_state(tmp_path):

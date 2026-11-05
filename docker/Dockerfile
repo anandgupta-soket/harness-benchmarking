@@ -116,6 +116,9 @@ RUN git init /opt/hermes-src \
 # Capture both output streams and preserve each CLI's exit status. Some pinned
 # versions (including Pi) print the version to stderr, so stdout-only greps
 # incorrectly fail even though the binary works.
+# Hermes derives its version from git; git refuses a root-owned checkout for the agent UID
+# ("dubious ownership"), which made `hermes --version` print "vunknown" for the agent.
+RUN git config --system --add safe.directory /opt/hermes-src
 RUN set -eu; \
     verify_version() { \
       name="$1"; expected="$2"; shift 2; status=0; \

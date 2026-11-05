@@ -204,8 +204,8 @@ def validate(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     if ex.get("cpu") != 1:
         problems.append("experiment.cpu must be 1 (v1 matrix)")
     mc = ex.get("max_concurrent_trials", 0)
-    if not isinstance(mc, int) or not 1 <= mc <= 4:
-        problems.append("experiment.max_concurrent_trials must be 1..4")
+    if not isinstance(mc, int) or not 1 <= mc <= 9:
+        problems.append("experiment.max_concurrent_trials must be 1..9")
     mems = ex.get("memory_mib") or []
     if not mems or any((not isinstance(m, int)) or m <= 0 for m in mems):
         problems.append("experiment.memory_mib must be positive ints")

@@ -218,34 +218,33 @@ def build_hermes(ctx: Ctx) -> Invocation:
     import yaml
     _mk(ctx, "hermes")
     hh = ctx.home / "hermes"
-    (hh / "config.yaml").write_text(yaml.safe_dump({"model": {"default": ctx.model, "provider": "custom", "base_url": ctx.base_url}}))
+    # key_env names the env var that holds the key; without it the custom provider sends "no-key-required".
+    (hh / "config.yaml").write_text(yaml.safe_dump({"model": {"default": ctx.model, "provider": "custom", "base_url": ctx.base_url,
+                                                              "key_env": ctx.api_key_env}}))
     env = base_env(ctx, {"HERMES_HOME": str(hh), "TERMINAL_CWD": str(ctx.workdir),
                          "OPENAI_API_KEY": os.environ.get(ctx.api_key_env, "")})
     cmd = rt.build_hermes_cmd(_ns(provider="custom", model=ctx.model), ctx.prompt, hh, ctx.workdir)
     return Invocation(cmd, env, lambda out, err: rt.scrape_hermes_metrics(hh))
 
 
-def cline_providers_json(ctx: Ctx, api_key: str) -> dict:
-    """cline 3.0.74 provider settings (SDK provider-settings.ts): provider `openai` is the OpenAI-COMPATIBLE one
-    (`openai-native` is direct OpenAI)."""
-    return {"version": 1, "providers": {"openai": {"settings": {
-        "provider": "openai", "apiKey": api_key, "baseUrl": ctx.base_url, "model": ctx.model,
-        "protocol": "openai-chat", "client": "openai-compatible"}}}}
-
-
 def build_cline(ctx: Ctx) -> Invocation:
-    """The key is written to a 0600 settings file inside the private, per-trial home (cline offers no
-    env-only path). It is excluded from exports (SECRET_FILE_GLOBS: providers.json) and purged after the trial."""
+    """cline 3.0.74. Passing -P/-m on a run REPLACES the saved provider settings (dropping apiKey/baseUrl),
+    and the run command has no base-URL flag. The supported flow is therefore `cline auth` (which writes
+    <data-dir>/settings/providers.json with key, model and base URL) followed by a plain run that uses the
+    saved provider. The key is read from the environment by the shell, so it never appears in an argv; the
+    settings file Cline writes is excluded from exports (SECRET_FILE_GLOBS: providers.json) and purged."""
     _mk(ctx, "cline/data/settings", "cline/config")
-    sp = ctx.home / "cline/data/settings/providers.json"
-    fd = os.open(sp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as f:
-        json.dump(cline_providers_json(ctx, os.environ.get(ctx.api_key_env, "")), f)
-    env = base_env(ctx, {"CLINE_PROVIDER_SETTINGS_PATH": str(sp)})
-    cmd = rt.build_cline_cmd(_ns(provider="openai", model=ctx.model), ctx.prompt, ctx.home / "cline", ctx.workdir)
-    cmd[1:1] = ["--yolo"]    # one-shot tool approvals
+    data, conf = ctx.home / "cline/data", ctx.home / "cline/config"
+    env = base_env(ctx)
+    run = rt.build_cline_cmd(_ns(provider="", model=""), ctx.prompt, ctx.home / "cline", ctx.workdir)
+    run[1:1] = ["--yolo"]    # one-shot tool approvals
+    script = ('cline auth -p openai-compatible -k "$%s" -b %s -m %s --data-dir %s --config %s >/dev/null 2>&1 '
+              '&& exec "$@"') % (ctx.api_key_env, shlex.quote(ctx.base_url), shlex.quote(ctx.model),
+                                 shlex.quote(str(data)), shlex.quote(str(conf)))
+    cmd = ["sh", "-c", script, "cline-bench", *run]
     return Invocation(cmd, env, lambda out, err: rt.metrics_from_cline_events(out),
-                      ["API key lives in a 0600 file under the private trial home; purged + never exported"])
+                      ["`cline auth` writes the provider settings; the key comes from the environment, not argv",
+                       "API key lives in a file under the private trial home; purged + never exported"])
 
 
 def build_kilo(ctx: Ctx) -> Invocation:
