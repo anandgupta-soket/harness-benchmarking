@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-11-05T11:34:07.268240+00:00",
+  "source": "temporary Kubernetes Pods in bench-constrained",
+  "endpoint": "https://api.soket.ai/v1",
+  "requested_model": "GLM-5.3",
+  "model_discovery": {
+    "authenticated": true,
+    "model_listed": true
+  },
+  "requests": [
+    {
+      "path": "/chat/completions",
+      "max_tokens": 64,
+      "http_status": 502,
+      "latency_seconds": 8.582
+    },
+    {
+      "path": "/chat/completions",
+      "max_tokens": 256,
+      "http_status": 502,
+      "latency_seconds": 7.348,
+      "error": {
+        "type": "server_error",
+        "code": "upstream_error",
+        "message": "The model is unavailable right now."
+      }
+    }
+  ],
+  "qualification_status": "blocked",
+  "temporary_pods_deleted": true,
+  "credentials_stored": false
+}

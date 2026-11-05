@@ -10,3 +10,11 @@ runs/*.lock
 __pycache__/
 runs/suites.csv
 reports/
+
+# bench runner (Kubernetes) local state
+.venv/
+*.egg-info/
+.pytest_cache/
+bench-exports/
+bench-reports/
+.bench-cache/

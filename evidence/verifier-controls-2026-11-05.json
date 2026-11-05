@@ -1,0 +1,93 @@
+{
+  "BUG-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "FEAT-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "FEAT-02": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "FEAT-03": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "FEAT-04": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "FEAT-05": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "FEAT-06": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "REF-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "TOOL-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "WEB-BUG-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "WEB-FEAT-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "WEB-REF-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  },
+  "AGENT-01": {
+    "positive": true,
+    "negative_rejected": true,
+    "failed_checks": [],
+    "positive_errors": [],
+    "negative_errors": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "worker": "soketlab-worker001",
+  "cgroup_version": 1,
+  "memory_limit_bytes": 134217728,
+  "memory_peak_bytes": 10559488,
+  "memory_current_bytes": 7958528,
+  "cpu_quota_us": 10000,
+  "cpu_period_us": 100000,
+  "cpu_usage_ns": 351818604,
+  "expected_memory_limit_bytes": 134217728,
+  "expected_cpu_cores": 0.1,
+  "mount_root_is_container_scope": true,
+  "measurement_scope": "entire single workload container",
+  "temporary_pod_deleted": true
+}

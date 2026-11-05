@@ -30,6 +30,8 @@ ROUTES = {
     "openrouter": ("openrouter", "OPENROUTER_API_KEY", "https://openrouter.ai/api/v1"),
     "openai": ("openai", "OPENAI_API_KEY", None),
     "anthropic": ("anthropic", "ANTHROPIC_API_KEY", None),
+    # any OpenAI-compatible endpoint; needs --base-url (and optionally --api-key-env)
+    "custom": ("custom", "BENCH_API_KEY", None),
 }
 
 EDITOR_PATCH = """\
@@ -64,6 +66,8 @@ def main() -> int:
     ap.add_argument("--cwd", default=os.getcwd(), help="working directory for the agent (default: this process's cwd)")
     ap.add_argument("--dsh-home", default=os.environ.get("DSH_HOME", ""), help="default: $DSH_HOME")
     ap.add_argument("--profile", default="sdk-minimal")
+    ap.add_argument("--base-url", default="", help="provider=custom only: OpenAI-compatible base URL")
+    ap.add_argument("--api-key-env", default="", help="provider=custom only: env var NAME holding the key")
     ap.add_argument("--max-tokens", type=int, default=49152)
     ap.add_argument("--no-editor", action="store_true", help="shell-only, like eval-bench's default")
     args = ap.parse_args()
@@ -75,6 +79,12 @@ def main() -> int:
         print(f"dsh_sdk_run: unsupported provider {args.provider!r} (known: {', '.join(ROUTES)})", file=sys.stderr)
         return 2
     route, key_env, base_url = ROUTES[args.provider]
+    if args.provider == "custom":
+        if not args.base_url:
+            print("dsh_sdk_run: --base-url is required for provider=custom", file=sys.stderr)
+            return 2
+        base_url = args.base_url
+        key_env = args.api_key_env or key_env
     if not os.environ.get(key_env):
         print(f"dsh_sdk_run: {key_env} is not set", file=sys.stderr)
         return 2
@@ -98,7 +108,7 @@ def main() -> int:
     if not args.no_editor and args.profile == "sdk-minimal":
         patch_args.append(write_patch(EDITOR_PATCH))
     if args.provider != "deepseek-official":
-        patch_args.append(write_patch(provider_patch(route, key_env, base_url, args.model, hand_declared=args.provider == "openrouter")))
+        patch_args.append(write_patch(provider_patch(route, key_env, base_url, args.model, hand_declared=args.provider in ("openrouter", "custom"))))
 
     Path(args.dsh_home).mkdir(parents=True, exist_ok=True)
     os.environ["PWD"] = args.cwd

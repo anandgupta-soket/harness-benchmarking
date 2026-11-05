@@ -1,0 +1,12 @@
+{
+  "name": "loop-bench-agent-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pinned Node CLIs used by the Loop benchmark runner image",
+  "dependencies": {
+    "@kilocode/cli": "7.8.18",
+    "@mariozechner/pi-coding-agent": "0.73.1",
+    "cline": "3.0.74",
+    "opencode-ai": "1.19.5"
+  }
+}

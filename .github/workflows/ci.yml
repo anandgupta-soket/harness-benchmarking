@@ -1,0 +1,48 @@
+name: Offline benchmark validation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: offline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /tmp/loop-bench-browsers
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: dtolnay/rust-toolchain@1.88.0
+        with:
+          components: clippy
+      - uses: astral-sh/setup-uv@v6
+      - name: Install locked development dependencies
+        run: uv sync --locked --extra parquet
+      - name: Prepare trusted browser test dependencies
+        run: |
+          npm ci --prefix fixtures/dark-mode-site --ignore-scripts --no-audit --no-fund
+          uv run --no-sync python -m playwright install --with-deps chromium
+      - name: Run offline infrastructure and verifier tests
+        run: uv run --no-sync pytest --junitxml=/tmp/benchmark-tests.xml
+      - name: Validate all known-good and baseline controls
+        run: uv run --no-sync python controls/run_controls.py > /tmp/benchmark-controls.json
+      - name: Validate non-mutating plan
+        run: uv run --no-sync bench plan --config configs/glm53.yaml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-validation
+          path: |
+            /tmp/benchmark-tests.xml
+            /tmp/benchmark-controls.json

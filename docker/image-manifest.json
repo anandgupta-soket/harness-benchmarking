@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "harnesses": {
+    "loop": {"version": "0.6.0", "commit": "1dc7ef4a96b19e450d33629035341f0725b38f81"},
+    "pi": {"version": "0.73.1", "package": "@mariozechner/pi-coding-agent"},
+    "goose": {"version": "1.57.0", "repository": "aaif-goose/goose"},
+    "opencode": {"version": "1.19.5", "package": "opencode-ai"},
+    "hermes": {"version": "0.22.7", "repository": "NousResearch/hermes-agent"},
+    "cline": {"version": "3.0.74", "package": "cline"},
+    "kilo": {"version": "7.8.18", "package": "@kilocode/cli"},
+    "omp": {"version": "18.16.0", "repository": "can1357/oh-my-pi"},
+    "deepseek-harness": {"version": "0.2.1rc2", "package": "deepseek-harness-sdk"}
+  },
+  "tools": {
+    "rust": "1.88.0",
+    "python": "3.11",
+    "playwright": "1.64.1",
+    "kubectl": "1.30.14",
+    "node": "22.21.0"
+  }
+}
