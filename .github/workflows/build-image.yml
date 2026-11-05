@@ -1,6 +1,9 @@
 name: Build and publish benchmark runner image
 
 on:
+  push:
+    branches:
+      - feat/constrained-kube-benchmark
   workflow_dispatch:
     inputs:
       image_tag:
@@ -36,7 +39,11 @@ jobs:
       - name: Normalize image name
         id: image
         shell: bash
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/loop-bench-runner" >> "$GITHUB_OUTPUT"
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/loop-bench-runner" >> "$GITHUB_OUTPUT"
+          echo "tag=${IMAGE_TAG:-runner-${GITHUB_SHA}}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push linux/amd64 image
         id: build
@@ -46,9 +53,9 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.image.outputs.name }}:${{ inputs.image_tag }}
+          tags: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
           build-args: |
             LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
 
       - name: Report immutable image reference
-        run: echo "${{ steps.image.outputs.name }}:${{ inputs.image_tag }}@${{ steps.build.outputs.digest }}"
+        run: echo "${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}@${{ steps.build.outputs.digest }}"
