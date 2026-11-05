@@ -4,6 +4,18 @@ on:
   push:
     branches:
       - feat/constrained-kube-benchmark
+    paths:
+      - .dockerignore
+      - bench/**
+      - controls/**
+      - docker/**
+      - fixtures/**
+      - pyproject.toml
+      - scripts/**
+      - tasks/**
+      - tests/**
+      - uv.lock
+      - verifiers/**
   workflow_dispatch:
     inputs:
       image_tag:
@@ -73,6 +85,35 @@ jobs:
           cache-to: type=gha,scope=runner-image,mode=max
           build-args: |
             LOOP_COMMIT=1dc7ef4a96b19e450d33629035341f0725b38f81
+
+      - name: Smoke test final image as the agent user
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+        run: |
+          docker pull "$IMAGE"
+          docker run --rm --user 10001 --read-only --cap-drop=ALL --security-opt=no-new-privileges \
+            --tmpfs /work:uid=10001,gid=10001,mode=0700 --tmpfs /tmp \
+            -e HOME=/work -e TMPDIR=/tmp --entrypoint sh "$IMAGE" -ec '
+              for cmd in loop cargo rustc node npm python python3 pi goose opencode hermes cline kilo omp kubectl; do command -v "$cmd" >/dev/null; done
+              cargo --version
+              rustc --version
+              node --version
+              python --version
+              loop --version | grep -F "0.6.0"
+              pi --version | grep -F "0.73.1"
+              goose --version | grep -F "1.57.0"
+              opencode --version | grep -F "1.19.5"
+              hermes --version | grep -F "0.22.7"
+              cline --version | grep -F "3.0.74"
+              kilo --version | grep -F "7.8.18"
+              omp --version | grep -F "18.16.0"
+              kubectl version --client --output=yaml | grep -F "gitVersion: v1.30.14"
+              mkdir /work/write-check && touch /work/write-check/ok
+              test ! -r /opt/bench/controls/run_controls.py
+              test ! -r /opt/bench/bench/verification.py
+              test ! -r /opt/bench/verifiers/mini_web_ui.test.js
+              test ! -r /opt/bench/fixtures/mini-calc-buggy/src/lib.rs
+            '
 
       - name: Report immutable image reference
         run: echo "${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}@${{ steps.build.outputs.digest }}"

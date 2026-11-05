@@ -100,8 +100,8 @@ RUN curl -fsSL "https://github.com/aaif-goose/goose/releases/download/v${GOOSE_V
 # current source installs require Python 3.14); OMP ships a pinned Linux binary.
 RUN git init /opt/hermes-src \
     && git -C /opt/hermes-src remote add origin https://github.com/NousResearch/hermes-agent.git \
-    && git -C /opt/hermes-src fetch --depth=1 origin "v${HERMES_VERSION}" \
-    && git -C /opt/hermes-src checkout --detach FETCH_HEAD \
+    && git -C /opt/hermes-src fetch --depth=1 origin "refs/tags/v${HERMES_VERSION}:refs/tags/v${HERMES_VERSION}" \
+    && git -C /opt/hermes-src checkout --detach "refs/tags/v${HERMES_VERSION}" \
     && test "$(git -C /opt/hermes-src describe --tags --exact-match)" = "v${HERMES_VERSION}" \
     && cd /opt/hermes-src \
     && uv sync --locked --python 3.14 --no-dev \

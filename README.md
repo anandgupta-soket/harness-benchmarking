@@ -46,7 +46,7 @@ Create the namespace first if it does not exist. Create the Secret interactively
 uv run bench setup --config /path/to/operator.yaml --api-key-env BENCH_API_KEY
 ```
 
-Use `--replace-api-key` only when you intend to replace the configured Secret key. Secret values are sent directly to Kubernetes, are never read back to the local CLI, and are exposed only to trial pods. Setup applies the quota/RBAC/PVC, starts the small PVC reader to bind the node-local volume, and checks image provenance. It launches no model requests or benchmark trials. `--network-policy` optionally applies egress policy; enforcement depends on the cluster CNI.
+Use `--replace-api-key` only when you intend to replace the configured Secret key. Secret values are sent directly to Kubernetes, are never read back to the local CLI, and are exposed only to trial pods. Setup applies the quota/RBAC/PVC, starts the small operator helper to bind the node-local volume, and checks image provenance. This helper has read/write access to the results PVC because qualification evidence and explicit replacement metadata must be persisted; it has no Kubernetes service-account token or model API key. Setup launches no model requests or benchmark trials. `--network-policy` optionally applies egress policy; enforcement depends on the cluster CNI.
 
 For a pre-existing Secret, omit `--api-key-env`; setup checks only that the configured key name exists. Use `--local-kubectl` to use the current kubeconfig instead of SSH mode.
 
@@ -94,4 +94,4 @@ uv run pytest
 uv run python controls/run_controls.py
 ```
 
-These checks exercise local orchestration, fixtures, image manifest structure, and verifier controls. They do not establish cluster readiness, public image visibility, API endpoint health, or model behavior.
+These checks exercise local orchestration, fixtures, image manifest structure, and verifier controls. For AGENT-01, the verifier checks the final code and test result; the captured terminal logs support workflow review, but the before/after test sequence is not automatically graded. Local checks do not establish cluster readiness, public image visibility, API endpoint health, or model behavior.

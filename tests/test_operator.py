@@ -20,6 +20,16 @@ def test_plan_never_constructs_a_kubernetes_client(monkeypatch, capsys):
     assert result['budget']['pods'] <= 8
 
 
+def test_reader_helper_has_rw_pvc_for_operator_state(tmp_path):
+    cfg = make_cfg(('loop',))
+    pod = M.reader_pod(cfg)
+    volume = next(v for v in pod['spec']['volumes'] if v['name'] == 'data')
+    mount = next(v for v in pod['spec']['containers'][0]['volumeMounts'] if v['name'] == 'data')
+    assert volume['persistentVolumeClaim']['claimName'] == cfg.get('storage.pvc_name')
+    assert not volume['persistentVolumeClaim'].get('readOnly', False)
+    assert not mount.get('readOnly', False)
+
+
 def test_qualification_is_bound_to_configuration_and_all_stages(tmp_path):
     cfg = make_cfg()
     with pytest.raises(ValueError, match='resources missing'):

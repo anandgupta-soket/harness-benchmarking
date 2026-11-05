@@ -231,11 +231,13 @@ def reader_pod(cfg: Config, name: str = "bench-reader", ttl_s: int = 3600) -> di
         "name": "reader", "image": cfg.get("images.runner"), "imagePullPolicy": "IfNotPresent",
         "command": ["sleep", str(int(ttl_s))],
         "resources": _res(r["cpu"], r["memory_mi"], r["ephemeral_gi"]),
-        "volumeMounts": [{"name": "data", "mountPath": DATA_MOUNT, "readOnly": True}],
+        # The operator helper persists qualification evidence and explicit
+        # replacement state in SQLite; do not mount this PVC read-only.
+        "volumeMounts": [{"name": "data", "mountPath": DATA_MOUNT}],
         "securityContext": {"allowPrivilegeEscalation": False, "capabilities": {"drop": ["ALL"]}},
     }
     spec = {**_pod_common(cfg, "reader"), "containers": [container], "activeDeadlineSeconds": int(ttl_s) + 30,
-            "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": cfg.get("storage.pvc_name"), "readOnly": True}}]}
+            "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": cfg.get("storage.pvc_name")}}]}
     return {"apiVersion": "v1", "kind": "Pod", "metadata": meta(cfg, name, "reader"), "spec": spec}
 
 
