@@ -2,7 +2,7 @@
 
 This repository packages the existing Loop, Pi, Goose, OpenCode, Hermes, Cline, Kilo, OMP, and DeepSeek harness CLIs with task fixtures, Kubernetes isolation, orchestration, independent verification, and resource/token/latency collection. It does not introduce a new coding agent. Tasks and prompts live in `tasks/`; clean starter repositories live in `fixtures/`; adapter and verification code live in `bench/` and `verifiers/`.
 
-The scored matrix is 9 harnesses × 13 tasks × 4 memory limits (256, 512, 1024, 2048 MiB) × 5 repetitions = **2,340 trials**. Every trial receives 1 CPU. At most four trial pods run at once, and a task/profile/repetition cell is a barrier: its harnesses finish before the next cell starts. The 2048 MiB condition is a reference candidate; it has not been proven unconstrained. Per-task timeout, CPU time, memory peak/OOM, token usage, latency, turns, tool calls, and verifier outcomes are retained. Token and turn ceilings are disclosed but not enforced.
+The scored matrix is 9 harnesses × 13 tasks × 4 memory limits (256, 512, 1024, 2048 MiB) × 5 repetitions = **2,340 trials**. Every trial receives 1 CPU. A task/profile/repetition cell contains one trial per harness, all nine run concurrently (`max_concurrent_trials: 9`), and the cell is a barrier: every harness finishes before the next cell starts. Exactly one verifier pod runs at a time. The 2048 MiB condition is a reference candidate; it has not been proven unconstrained. Per-task timeout, CPU time, memory peak/OOM, token usage, latency, turns, tool calls, and verifier outcomes are retained. Token and turn ceilings are disclosed but not enforced.
 
 ## Requirements
 
@@ -58,9 +58,13 @@ Qualification evidence is written on the PVC and bound to the full configuration
 uv run bench qualify --config /path/to/operator.yaml --stage all
 ```
 
-This runs four gates in sequence: cgroup/resource probes at every configured profile; 13 positive and 13 negative verifier controls; a one-task-per-harness unscored protocol smoke; and the small unscored harness/task/profile matrix. Each gate stops the sequence on failure. Protocol qualification checks recorded usage, at least one executed tool call, and valid cgroup data; it is an integration smoke, not proof of backend model identity or complete protocol equivalence. These qualification runs do make model calls for protocol/matrix stages. Use a test endpoint and budget accordingly. To rerun one gate, pass `--stage resources`, `controls`, `protocol`, or `matrix`.
+This runs four gates in sequence: cgroup/resource probes at every configured profile; 13 positive and 13 negative verifier controls; a one-task-per-harness unscored protocol smoke; and the small unscored harness/task/profile matrix. Each gate stops the sequence on failure. The default protocol task is `BUG-01` at 2048 MiB, and the matrix covers every scored harness (enforced by config validation) on `BUG-01`, `FEAT-02` and `WEB-BUG-01` at 512 and 2048 MiB. Protocol qualification checks recorded usage, at least one executed tool call, and valid cgroup data; it is an integration smoke, not proof of backend model identity or complete protocol equivalence. These qualification runs do make model calls for protocol/matrix stages. Use a test endpoint and budget accordingly. To rerun one gate, pass `--stage resources`, `controls`, `protocol`, or `matrix`.
 
 The scored command refuses to start unless all four passing records match the exact frozen config and its runner image manifest. No model/workload run is started by this documentation or by `plan`.
+
+## Splitting a scored run across namespaces
+
+A scored run can be split by repetitions to finish sooner. `configs/glm53.yaml` (namespace `bench-constrained`) covers repetitions 1-3 and `configs/glm53-reps45.yaml` (namespace `bench-constrained-b`, `repetitions: 2`) covers 4-5; the second run's repetitions 1-2 are reported as 4-5. Each config needs its own setup, API-key Secret and qualification, because the evidence is bound to the config hash. Always pass `--config` and `--run-id` explicitly, since `.bench/latest.json` only points at the newest run. See [docs/scored-run-split.md](docs/scored-run-split.md) for the merge rules, the qualification waiver on the second run, and the known Goose token-usage gap.
 
 ## Run and operate
 
